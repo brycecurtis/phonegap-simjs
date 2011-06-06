@@ -1,0 +1,591 @@
+/*
+ * PhoneGap is available under *either* the terms of the modified BSD license *or* the
+ * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
+ * 
+ * Copyright (c) 2005-2010, Nitobi Software Inc.
+ * Copyright (c) 2010-2011, IBM Corporation
+ */
+
+// device=Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1
+console.log("User Agent="+navigator.userAgent);
+var sim = true;
+
+function rand(max) {
+    return Math.random()*max;
+}
+
+if (typeof PhoneGap === "undefined") {
+console.log(">>>>>>>>>>>>> including PHONEGAP.JS");
+
+dumpObj = function(obj, name, indent, depth) {
+    if (!indent) {
+        indent = "  ";
+    }
+    if (!depth) {
+        depth = 1;
+    }
+    if (!name) {
+        name = "Obj";
+    }
+    if (depth > 10) {
+        return indent + name + ": <Maximum Depth Reached>\n";
+    }
+    if (typeof obj == "object") {
+        var child = null;
+        var output = indent + name + "\n";
+        indent += "\t";
+        var item;
+        for (item in obj) {
+            var child = '';
+            try {
+                child = obj[item];
+            } catch (e) {
+                child = "<Unable to Evaluate>";
+            }
+            if (typeof child == "object") {
+                if (depth > 1) {
+                    output += dumpObj(child, item, indent, depth - 1);
+                }
+            } else {
+                output += indent + item + ": " + child + "\n";
+            }
+        }
+        return output;
+    } else {
+        //console.log("type=else");
+        return obj;
+    }
+};
+
+/**
+ * The order of events during page load and PhoneGap startup is as follows:
+ *
+ * onDOMContentLoaded         Internal event that is received when the web page is loaded and parsed.
+ * window.onload              Body onload event.
+ * onNativeReady              Internal event that indicates the PhoneGap native side is ready.
+ * onPhoneGapInit             Internal event that kicks off creation of all PhoneGap JavaScript objects (runs constructors).
+ * onPhoneGapReady            Internal event fired when all PhoneGap JavaScript objects have been created
+ * onPhoneGapInfoReady        Internal event fired when device properties are available
+ * onDeviceReady              User event fired to indicate that PhoneGap is ready
+ * onResume                   User event fired to indicate a start/resume lifecycle event
+ * onPause                    User event fired to indicate a pause lifecycle event
+ * onDestroy                  Internal event fired when app is being destroyed (User should use window.onunload event, not this one).
+ *
+ * The only PhoneGap events that user code should register for are:
+ *      onDeviceReady
+ *      onResume
+ *
+ * Listeners can be registered as:
+ *      document.addEventListener("deviceready", myDeviceReadyListener, false);
+ *      document.addEventListener("resume", myResumeListener, false);
+ *      document.addEventListener("pause", myPauseListener, false);
+ */
+
+if (typeof(DeviceInfo) !== 'object') {
+    DeviceInfo = {};
+}
+
+/**
+ * This represents the PhoneGap API itself, and provides a global namespace for accessing
+ * information about the state of PhoneGap.
+ * @class
+ */
+var PhoneGap = {
+    queue: {
+        ready: true,
+        commands: [],
+        timer: null
+    }
+};
+
+/**
+ * Create a UUID
+ *
+ * @return
+ */
+PhoneGap.createUUID = function() {
+    return PhoneGap.UUIDcreatePart(4) + '-' +
+        PhoneGap.UUIDcreatePart(2) + '-' +
+        PhoneGap.UUIDcreatePart(2) + '-' +
+        PhoneGap.UUIDcreatePart(2) + '-' +
+        PhoneGap.UUIDcreatePart(6);
+};
+
+PhoneGap.UUIDcreatePart = function(length) {
+    var uuidpart = "";
+    var i, uuidchar;
+    for (i=0; i<length; i++) {
+        uuidchar = parseInt((Math.random() * 256),0).toString(16);
+        if (uuidchar.length === 1) {
+            uuidchar = "0" + uuidchar;
+        }
+        uuidpart += uuidchar;
+    }
+    return uuidpart;
+};
+
+/**
+ * List of resource files loaded by PhoneGap.
+ * This is used to ensure JS and other files are loaded only once.
+ */
+PhoneGap.resources = {base: true};
+
+/**
+ * Determine if resource has been loaded by PhoneGap
+ *
+ * @param name
+ * @return
+ */
+PhoneGap.hasResource = function(name) {
+    return PhoneGap.resources[name];
+};
+
+/**
+ * Add a resource to list of loaded resources by PhoneGap
+ *
+ * @param name
+ */
+PhoneGap.addResource = function(name) {
+    console.log("PhoneGap: Adding resource "+name);
+    PhoneGap.resources[name] = true;
+};
+
+/**
+ * Custom pub-sub channel that can have functions subscribed to it
+ */
+PhoneGap.Channel = function (type)
+{
+    this.type = type;
+    this.handlers = {};
+    this.guid = 0;
+    this.fired = false;
+    this.enabled = true;
+};
+
+/**
+ * Subscribes the given function to the channel. Any time that 
+ * Channel.fire is called so too will the function.
+ * Optionally specify an execution context for the function
+ * and a guid that can be used to stop subscribing to the channel.
+ * Returns the guid.
+ */
+PhoneGap.Channel.prototype.subscribe = function(f, c, g) {
+    //console.log("subscribe("+this.type+")");
+    //console.log("subscribe("+f+")");
+    // need a function to call
+    if (f === null) { return; }
+
+    var func = f;
+    if (typeof c === "object" && f instanceof Function) { func = PhoneGap.close(c, f); }
+
+    g = g || func.observer_guid || f.observer_guid || this.guid++;
+    func.observer_guid = g;
+    f.observer_guid = g;
+    this.handlers[g] = func;
+    return g;
+};
+
+/**
+ * Like subscribe but the function is only called once and then it
+ * auto-unsubscribes itself.
+ */
+PhoneGap.Channel.prototype.subscribeOnce = function(f, c) {
+    var g = null;
+    var _this = this;
+    var m = function() {
+        f.apply(c || null, arguments);
+        _this.unsubscribe(g);
+    };
+    if (this.fired) {
+        if (typeof c === "object" && f instanceof Function) { f = PhoneGap.close(c, f); }
+        f.apply(this, this.fireArgs);
+    } else {
+        g = this.subscribe(m);
+    }
+    return g;
+};
+
+/** 
+ * Unsubscribes the function with the given guid from the channel.
+ */
+PhoneGap.Channel.prototype.unsubscribe = function(g) {
+    if (g instanceof Function) { g = g.observer_guid; }
+    this.handlers[g] = null;
+    delete this.handlers[g];
+};
+
+/** 
+ * Calls all functions subscribed to this channel.
+ */
+PhoneGap.Channel.prototype.fire = function(e) {
+    console.log("fire("+this.type+")");
+    var cnt = 0;
+    if (this.enabled) {
+        var fail = false;
+        var item, handler, rv;
+        for (item in this.handlers) {
+            if (this.handlers.hasOwnProperty(item)) {
+            cnt++;
+                handler = this.handlers[item];
+                if (handler instanceof Function) {
+                    rv = (handler.apply(this, arguments) === false);
+                    fail = fail || rv;
+                }
+            }
+        }
+        this.fired = true;
+        this.fireArgs = arguments;
+        console.log(" -- sent "+cnt+ " to "+this.type+" handlers");
+        return !fail;
+    }
+    return true;
+};
+
+/**
+ * Calls the provided function only after all of the channels specified
+ * have been fired.
+ */
+PhoneGap.Channel.join = function(h, c) {
+    var i = c.length;
+    var f = function() {
+        if (!(--i)) {
+            h();
+        }
+    };
+    var len = i;
+    var j;
+    for (j=0; j<len; j++) {
+        if (!c[j].fired) {
+            c[j].subscribeOnce(f);
+        }
+        else {
+            i--;
+        }
+    }
+    if (!i) {
+        h();
+    }
+};
+
+/**
+ * Boolean flag indicating if the PhoneGap API is available and initialized.
+ */ // TODO: Remove this, it is unused here ... -jm
+PhoneGap.available = DeviceInfo.uuid !== undefined;
+
+/**
+ * Add an initialization function to a queue that ensures it will run and initialize
+ * application constructors only once PhoneGap has been initialized.
+ * @param {Function} func The function callback you want run once PhoneGap is initialized
+ */
+PhoneGap.addConstructor = function(func) {
+    PhoneGap.onPhoneGapInit.subscribeOnce(function() {
+        try {
+            func();
+        } catch(e) {
+            console.log("Failed to run constructor: " + e);
+        }
+    });
+};
+
+/**
+ * Plugins object
+ */
+if (!window.plugins) {
+    window.plugins = {};
+}
+
+/**
+ * Adds a plugin object to window.plugins.
+ * The plugin is accessed using window.plugins.<name>
+ *
+ * @param name          The plugin name
+ * @param obj           The plugin object
+ */
+PhoneGap.addPlugin = function(name, obj) {
+    if (!window.plugins[name]) {
+        window.plugins[name] = obj;
+    }
+    else {
+        console.log("Error: Plugin "+name+" already exists.");
+    }
+};
+
+/**
+ * onDOMContentLoaded channel is fired when the DOM content 
+ * of the page has been parsed.
+ */
+PhoneGap.onDOMContentLoaded = new PhoneGap.Channel('onDOMContentLoaded');
+
+/**
+ * onNativeReady channel is fired when the PhoneGap native code
+ * has been initialized.
+ */
+PhoneGap.onNativeReady = new PhoneGap.Channel('onNativeReady');
+
+/**
+ * onPhoneGapInit channel is fired when the web page is fully loaded and
+ * PhoneGap native code has been initialized.
+ */
+PhoneGap.onPhoneGapInit = new PhoneGap.Channel('onPhoneGapInit');
+
+/**
+ * onPhoneGapReady channel is fired when the JS PhoneGap objects have been created.
+ */
+PhoneGap.onPhoneGapReady = new PhoneGap.Channel('onPhoneGapReady');
+
+/**
+ * onPhoneGapInfoReady channel is fired when the PhoneGap device properties
+ * has been set.
+ */
+PhoneGap.onPhoneGapInfoReady = new PhoneGap.Channel('onPhoneGapInfoReady');
+
+/**
+ * onResume channel is fired when the PhoneGap native code
+ * resumes.
+ */
+PhoneGap.onResume = new PhoneGap.Channel('onResume');
+
+/**
+ * onPause channel is fired when the PhoneGap native code
+ * pauses.
+ */
+PhoneGap.onPause = new PhoneGap.Channel('onPause');
+
+/**
+ * onDestroy channel is fired when the PhoneGap native code
+ * is destroyed.  It is used internally.  
+ * Window.onunload should be used by the user.
+ */
+PhoneGap.onDestroy = new PhoneGap.Channel('onDestroy');
+PhoneGap.onDestroy.subscribeOnce(function() {
+    PhoneGap.shuttingDown = true;
+});
+PhoneGap.shuttingDown = false;
+
+// _nativeReady is global variable that the native side can set
+// to signify that the native code is ready. It is a global since 
+// it may be called before any PhoneGap JS is ready.
+if (typeof _nativeReady !== 'undefined') { PhoneGap.onNativeReady.fire(); }
+
+/**
+ * onDeviceReady is fired only after all PhoneGap objects are created and
+ * the device properties are set.
+ */
+PhoneGap.onDeviceReady = new PhoneGap.Channel('onDeviceReady');
+
+/**
+ * Start listening for XHR callbacks onDeviceReady
+ */
+//PhoneGap.onDeviceReady.subscribeOnce(function() {
+//    PhoneGap.JSCallback();
+//});
+
+// Array of channels that must fire before "deviceready" is fired
+PhoneGap.deviceReadyChannelsArray = [ PhoneGap.onPhoneGapReady]; // @bc , PhoneGap.onPhoneGapInfoReady];
+
+// Hashtable of user defined channels that must also fire before "deviceready" is fired
+PhoneGap.deviceReadyChannelsMap = {};
+
+/**
+ * Indicate that a feature needs to be initialized before it is ready to be used.
+ * This holds up PhoneGap's "deviceready" event until the feature has been initialized
+ * and PhoneGap.initComplete(feature) is called.
+ *
+ * @param feature {String}     The unique feature name
+ */
+PhoneGap.waitForInitialization = function(feature) {
+    if (feature) {
+        var channel = new PhoneGap.Channel(feature);
+        PhoneGap.deviceReadyChannelsMap[feature] = channel;
+        PhoneGap.deviceReadyChannelsArray.push(channel);
+    }
+};
+
+/**
+ * Indicate that initialization code has completed and the feature is ready to be used.
+ *
+ * @param feature {String}     The unique feature name
+ */ 
+PhoneGap.initializationComplete = function(feature) {
+    var channel = PhoneGap.deviceReadyChannelsMap[feature];
+    if (channel) {
+        channel.fire();
+    }
+};
+
+/**
+ * Create all PhoneGap objects once page has fully loaded and native side is ready.
+ */
+PhoneGap.Channel.join(function() {
+    console.log("JOIN - onDOMContentLoaded + onNativeReady");
+    
+    // Run PhoneGap constructors
+    PhoneGap.onPhoneGapInit.fire();
+
+    // If emulator, then use built-in PhoneGap geolocation code
+    //if (device.emulator) {
+    //    Geolocation.usePhoneGap();
+    //}
+
+    // Fire event to notify that all objects are created
+    PhoneGap.onPhoneGapReady.fire();
+
+    // Fire onDeviceReady event once all constructors have run and PhoneGap info has been
+    // received from native side, and any user defined initialization channels.
+    PhoneGap.Channel.join(function() {
+        console.log("JOIN - onPhoneGapReady + onPhoneGapInfoReady");
+    
+        // Turn off app loading dialog
+        navigator.notification.activityStop();
+
+        PhoneGap.onDeviceReady.fire();
+
+        // Fire the onresume event, since first one happens before JavaScript is loaded
+        PhoneGap.onResume.fire();
+    }, PhoneGap.deviceReadyChannelsArray);
+
+}, [ PhoneGap.onDOMContentLoaded, PhoneGap.onNativeReady ]);
+
+// Listen for DOMContentLoaded and notify our channel subscribers
+document.addEventListener('DOMContentLoaded', function() {
+    PhoneGap.onDOMContentLoaded.fire();
+}, false);
+
+// Intercept calls to document.addEventListener and watch for deviceready
+PhoneGap.m_document_addEventListener = document.addEventListener;
+
+document.addEventListener = function(evt, handler, capture) {
+    var e = evt.toLowerCase();
+    if (e === 'deviceready') {
+        PhoneGap.onDeviceReady.subscribeOnce(handler);
+    } else if (e === 'resume') {
+        PhoneGap.onResume.subscribe(handler);
+        if (PhoneGap.onDeviceReady.fired) {
+            PhoneGap.onResume.fire();
+        }
+    } else if (e === 'pause') {
+        PhoneGap.onPause.subscribe(handler);
+    }     
+    else {
+        // If subscribing to Android backbutton
+        if (e === 'backbutton') {
+            console.log("PhoneGap.js: backbutton");
+            //PhoneGap.exec(null, null, "App", "overrideBackbutton", [true]);
+        } 
+        
+        PhoneGap.m_document_addEventListener.call(document, evt, handler, capture);
+    }
+};
+
+// Intercept calls to document.removeEventListener and watch for events that 
+// are generated by PhoneGap native code
+PhoneGap.m_document_removeEventListener = document.removeEventListener;
+
+document.removeEventListener = function(evt, handler, capture) {
+    var e = evt.toLowerCase();
+
+    // If unsubscribing to Android backbutton
+    if (e === 'backbutton') {
+        //PhoneGap.exec(null, null, "App", "overrideBackbutton", [false]);
+    } 
+
+    PhoneGap.m_document_removeEventListener.call(document, evt, handler, capture);
+};
+
+/**
+ * Method to fire event from native code
+ */
+PhoneGap.fireEvent = function(type) {
+    console.log("PhoneGap.fireEvent("+type+")");
+    var e = document.createEvent('Events');
+    e.initEvent(type);
+    document.dispatchEvent(e);
+};
+
+
+/**
+ * Does a deep clone of the object.
+ *
+ * @param obj
+ * @return
+ */
+PhoneGap.clone = function(obj) {
+    var i, retVal;
+    if(!obj) { 
+        return obj;
+    }
+    
+    if(obj instanceof Array){
+        retVal = [];
+        for(i = 0; i < obj.length; ++i){
+            retVal.push(PhoneGap.clone(obj[i]));
+        }
+        return retVal;
+    }
+    
+    if (obj instanceof Function) {
+        return obj;
+    }
+    
+    if(!(obj instanceof Object)){
+        return obj;
+    }
+    
+    if (obj instanceof Date) {
+        return obj;
+    }
+    
+    retVal = {};
+    for(i in obj){
+        if(!(i in retVal) || retVal[i] !== obj[i]) {
+            retVal[i] = PhoneGap.clone(obj[i]);
+        }
+    }
+    return retVal;
+};
+
+PhoneGap.close = function(context, func, params) {
+    if (typeof params === 'undefined') {
+        return function() {
+            return func.apply(context, arguments);
+        };
+    } else {
+        return function() {
+            return func.apply(context, params);
+        };
+    }
+};
+
+/**
+ * Load a JavaScript file after page has loaded.
+ *
+ * @param {String} jsfile               The url of the JavaScript file to load.
+ * @param {Function} successCallback    The callback to call when the file has been loaded.
+ */
+PhoneGap.includeJavascript = function(jsfile, successCallback) {
+    var id = document.getElementsByTagName("head")[0];         
+    var el = document.createElement('script');
+    el.type = 'text/javascript';
+    if (typeof successCallback === 'function') {
+        el.onload = successCallback;
+    }
+    el.src = jsfile;
+    id.appendChild(el);
+};
+
+
+/**
+ * This class is provided to bridge the gap between the way plugins were setup in 0.9.3 and 0.9.4.  
+ * Users should be calling navigator.add.addService() instead of PluginManager.addService().
+ * @class
+ * @deprecated
+ */
+var PluginManager = {
+    addService: function(serviceType, className) {
+        navigator.app.addService(serviceType, className);   
+    }
+};
+
+};
+
+console.log("PHONEGAP.JS.BASE DONE");

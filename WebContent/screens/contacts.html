@@ -1,0 +1,136 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <!-- meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=2.0, maximum-scale=4.0, minimum-scale=1.0" / -->
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
+    <title>PhoneGap</title>
+    <script type="text/javascript" charset="utf-8" src="../phonegap/phonegap.0.9.5.js"></script>      
+    <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
+    <!-- script src="http://192.168.0.199:8080/target/target-script.js"></script -->
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+      
+<script type="text/javascript" charset="utf-8">
+    dojo.require("dojox.mobile.parser");
+    dojo.require("dojox.mobile");
+
+    var deviceReady = false;
+
+    //-------------------------------------------------------------------------
+    // Contacts
+    //-------------------------------------------------------------------------
+
+    function getContacts() {
+        obj = new ContactFindOptions();
+        obj.filter = "Brooks";
+        obj.multiple = true;
+        obj.limit = 1000;
+        navigator.service.contacts.find(
+            ["displayName", "name", "phoneNumbers", "emails", "urls", "note"],
+            function(contacts) {
+                var s = "";
+                if (contacts.length == 0) {
+                    s = "No contacts found";
+                }
+                else {
+                    s = "Number of contacts: "+contacts.length+"<br><table width='100%'><tr><th>Name</th><td>Phone</td><td>Email</td></tr>";
+                    for (var i=0; i<contacts.length; i++) {
+                        var contact = contacts[i];
+                        s = s + "<tr><td>" + contact.name.formatted + "</td><td>";
+                        if (contact.phoneNumbers.length > 0) {
+                            s = s + contact.phoneNumbers[0].value;
+                        }
+                        s = s + "</td><td>"
+                        if (contact.emails.length > 0) {
+                            s = s + contact.emails[0].value;
+                        }
+                        s = s + "</td></tr>";
+                    }
+                    s = s + "</table>";
+                }
+                document.getElementById('contacts_results').innerHTML = s;
+            },
+            function(e) {
+                document.getElementById('contacts_results').innerHTML = "Error: "+e;
+            },
+            obj);
+    };
+
+    function addContact(){
+        console.log("addContact for Android:");
+        /*
+        var contact = navigator.service.contacts.create();
+        contact.displayName = "Plumber";
+        var name = new ContactName();
+        name.givenName = "Jane";
+        name.familyName = "Doe";
+        contact.name = name;
+
+        // save
+        contact.save(
+            function() { alert("Contact saved.");},
+            function(e) { alert("Contact save failed: " + e); });
+        */
+        try{
+            var contact = navigator.service.contacts.create({"displayName": "Bryce User"});
+            var contactName = {
+                formatted: "Dooney User",
+                familyName: "User",
+                givenName: "Dooney",
+                middleName: "Doodle"
+            };
+
+            contact.name = contactName;
+            contact.gender = "female";
+
+            var phoneNumbers = [1];
+            phoneNumbers[0] = new ContactField('work', '512-555-1234', true);
+            contact.phoneNumbers = phoneNumbers;
+
+            contact.save(
+                function() { alert("Contact saved.");},
+                function(e) { alert("Contact save failed: " + e); }
+            );
+            console.log("you have saved the contact");
+        }
+        catch (e){
+            alert(e);
+        }
+
+    };
+    
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+        console.log("accelerometer.init()");
+        document.addEventListener("deviceready", function() {deviceReady = true;}, false);
+        window.setTimeout(function() {
+            if (!deviceReady) {
+                alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+            }
+        },1000);
+    }
+
+</script>
+
+  </head>
+  <body onload="init();">
+    <div id="main" dojoType="dojox.mobile.View" selected="true">
+        <h1 dojoType="dojox.mobile.Heading" style="font-size:18px;height:32px;line-height:30px;">Contacts</h1>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
+                <div dojoType="dojox.mobile.RoundRect"> 
+                <div id="contacts_results"></div>
+                </div>
+        </ul>
+        <h2 class="mblHeading">Action</h2>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" onclick="getContacts();">Get Contacts</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="addContact();">Add a new Contact</li>
+        </ul>
+    </div>
+  </body>
+</html>      

@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <!-- meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=2.0, maximum-scale=4.0, minimum-scale=1.0" / -->
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
+    <title>PhoneGap</title>
+    <script type="text/javascript" charset="utf-8" src="../phonegap/phonegap.0.9.5.js"></script>      
+    <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
+    <!-- script src="http://192.168.0.199:8080/target/target-script.js"></script -->
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+      
+<script type="text/javascript" charset="utf-8">
+    dojo.require("dojox.mobile.parser");
+    dojo.require("dojox.mobile");
+
+    var deviceReady = false;
+    
+    //-------------------------------------------------------------------------
+    // Network
+    //-------------------------------------------------------------------------
+
+    /**
+     * Check network status
+     */
+     var isReachable = function() {
+        document.getElementById('reachable_status').innerHTML = "Retrieving...";
+        navigator.network.isReachable("phonegap.com",
+
+            // Success callback
+            function(reachability) {
+                // There is no consistency on the format of reachability
+                var networkState = reachability.internetConnectionStatus || reachability.code || reachability;
+
+                var states = {};
+                states[NetworkStatus.NOT_REACHABLE]                      = 'No network connection';
+                states[NetworkStatus.REACHABLE_VIA_CARRIER_DATA_NETWORK] = 'Carrier data connection';
+                states[NetworkStatus.REACHABLE_VIA_WIFI_NETWORK]         = 'WiFi connection';
+
+                document.getElementById('reachable_status').innerHTML = states[networkState];
+            },
+
+            // Fail callback
+            function(e) {
+                document.getElementById('reachable_status').innerHTML = "Error: " + e;
+            });
+    };
+    
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+        console.log("accelerometer.init()");
+        document.addEventListener("deviceready", function() {deviceReady = true;}, false);
+        window.setTimeout(function() {
+            if (!deviceReady) {
+                alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+            }
+        },1000);
+    }
+
+</script>
+
+  </head>
+  <body onload="init();">  
+    <div id="main" dojoType="dojox.mobile.View" selected="true">
+        <h1 dojoType="dojox.mobile.Heading" style="font-size:18px;height:32px;line-height:30px;">Network</h1>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
+                <div dojoType="dojox.mobile.RoundRect"> 
+                    <div id="reachable_status">Select action below.</div>
+                </div>
+        </ul>
+        <h2 class="mblHeading">Action</h2>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" onclick="isReachable();">Call isReachable</li>
+        </ul>
+    </div>
+  </body>
+</html>      

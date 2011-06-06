@@ -1,0 +1,261 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <!-- meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=2.0, maximum-scale=4.0, minimum-scale=1.0" / -->
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
+    <title>PhoneGap</title>
+    <script type="text/javascript" charset="utf-8" src="../phonegap/phonegap.0.9.5.js"></script>      
+    <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
+    <!-- script src="http://192.168.0.199:8080/target/target-script.js"></script -->
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+      
+<script type="text/javascript" charset="utf-8">
+    dojo.require("dojox.mobile.parser");
+    dojo.require("dojox.mobile");
+
+    var deviceReady = false;
+
+    function roundNumber(num) {
+        var dec = 3;
+        var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+        return result;
+    }
+
+    //-------------------------------------------------------------------------
+    // Audio player
+    //-------------------------------------------------------------------------
+    var media1 = null;
+    var media1Timer = null;
+    var audioSrc = null;
+
+    /**
+     * Play audio
+     */
+    function playAudio(url) {
+        console.log("playAudio()");
+        console.log(" -- media="+media1);
+
+        //var src = "http://neuga.s3.amazonaws.com/onclassical/strings-organ.mp3";
+ //       var src = "http://audio.ibeat.org/content/p1rj1s/p1rj1s_-_rockGuitar.mp3";
+        //var src = "/android_asset/www/Jet_Sledding.mp4"; // no work
+        //var src = "http://vprbbc.streamguys.net/vprbbc24.mp3"; // mp3 streaming
+        var src = "/Users/bcurtis/mobile/mobile/PhoneGap/PhoneGap/Android/train.wav";
+        
+        if (url) {
+            src = url;
+        }
+
+        // Stop playing if src is different from currently playing source
+        if (src != audioSrc) {
+            if (media1 != null) {
+                stopAudio();
+                media1 = null;
+            }
+        }
+
+        if (media1 == null) {
+
+
+            // TEST STREAMING AUDIO PLAYBACK
+            //var src = "http://nunzioweb.com/misc/Bon_Jovi-Crush_Mystery_Train.mp3";   // works
+            //var src = "http://nunzioweb.com/misc/Bon_Jovi-Crush_Mystery_Train.m3u"; // doesn't work
+            //var src = "http://www.wav-sounds.com/cartoon/bugsbunny1.wav"; // works
+            //var src = "http://www.angelfire.com/fl5/html-tutorial/a/couldyou.mid"; // doesn't work
+            //var src = "MusicSearch/mp3/train.mp3";    // works
+            //var src = "bryce.mp3";  // works
+            //var src = "/android_asset/www/bryce.mp3"; // works
+
+            media1 = new Media(src,
+                function() {
+                    console.log("playAudio():Audio Success");
+                },
+                function(err) {
+                    console.log("playAudio():Audio Error: "+err);
+                    setAudioStatus("Error: " + err);
+                },
+                function(status) {
+                    console.log("playAudio():Audio Status: "+status);
+                    setAudioStatus(Media.MEDIA_MSG[status]);
+
+                    // If stopped, then stop getting current position
+                    if (Media.MEDIA_STOPPED == status) {
+                        clearInterval(media1Timer);
+                        media1Timer = null;
+                    }
+                });
+        }
+        audioSrc = src;
+
+        // Play audio
+        media1.play();
+        if (media1Timer == null) {
+            media1Timer = setInterval(
+                function() {
+                    media1.getCurrentPosition(
+                        function(position) {
+                            console.log("Pos="+position);
+                            if (position > -1) {
+                                setAudioPosition((position/1000)+" sec");
+                            }
+                        },
+                        function(e) {
+                            console.log("Error getting pos="+e);
+                            setAudioPosition("Error: "+e);
+                        }
+                    );
+                },
+                1000
+            );
+        }
+
+        // Get duration
+        var counter = 0;
+        var timerDur = setInterval(
+            function() {
+                counter = counter + 100;
+                if (counter > 5000) {
+                    clearInterval(timerDur);
+                }
+                var dur = media1.getDuration();
+                if (dur > 0) {
+                    clearInterval(timerDur);
+                    document.getElementById('audio_duration').innerHTML = (dur/1000) + " sec";
+                }
+            }, 100);
+    }
+
+    /**
+     * Pause audio playback
+     */
+    function pauseAudio() {
+        console.log("pauseAudio()");
+        if (media1) {
+            media1.pause();
+        }
+    }
+
+    /**
+     * Stop audio
+     */
+    function stopAudio() {
+        console.log("stopAudio()");
+        if (media1) {
+            media1.stop();
+        }
+        clearInterval(media1Timer);
+        media1Timer = null;
+    }
+
+    /**
+     * Set audio status
+     */
+    var setAudioStatus = function(status) {
+        document.getElementById('audio_status').innerHTML = status;
+    };
+
+    /**
+     * Set audio position
+     */
+    var setAudioPosition = function(position) {
+        document.getElementById('audio_position').innerHTML = position;
+    };
+
+    //-------------------------------------------------------------------------
+    // Audio recorder
+    //-------------------------------------------------------------------------
+    var mediaRec = null;
+    var recTime = 0;
+
+    /**
+     * Record audio
+     */
+    function recordAudio() {
+        console.log("recordAudio()");
+        console.log(" -- media="+mediaRec);
+        if (mediaRec == null) {
+
+            var src = "myrecording.mp3";
+            mediaRec = new Media(src,
+                    function() {
+                        console.log("recordAudio():Audio Success");
+                    },
+                    function(err) {
+                        console.log("recordAudio():Audio Error: "+err);
+                        setAudioStatus("Error: " + err);
+                    },
+                    function(status) {
+                        console.log("recordAudio():Audio Status: "+status);
+                        setAudioStatus(Media.MEDIA_MSG[status]);
+                    }
+                );
+        }
+
+        navigator.notification.beep(1);
+
+        // Record audio
+        mediaRec.startRecord();
+
+        // Stop recording after 10 sec
+        recTime = 0;
+        var recInterval = setInterval(function() {
+            recTime = recTime + 1;
+            setAudioPosition(recTime+" sec");
+            if (recTime >= 10) {
+                clearInterval(recInterval);
+                mediaRec.stopRecord();
+                console.log("recordAudio(): stop");
+                navigator.notification.beep(1);
+            }
+        }, 1000);
+    }
+
+    /**
+     * Play back recorded audio
+     */
+    function playRecording() {
+        playAudio("myrecording.mp3");
+    }
+    
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+        console.log("accelerometer.init()");
+        document.addEventListener("deviceready", function() {deviceReady = true;}, false);
+        window.setTimeout(function() {
+            if (!deviceReady) {
+                alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+            }
+        },1000);
+    }
+
+</script>
+
+  </head>
+  <body onload="init();">  
+    <div id="main" dojoType="dojox.mobile.View" selected="true">
+        <h1 dojoType="dojox.mobile.Heading" style="font-size:18px;height:32px;line-height:30px;">Audio Player/Recorder</h1>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
+                <div id="audio_status">Stopped</div>
+                <div dojoType="dojox.mobile.RoundRect"> 
+                    <div><table width="100%">
+                        <tr><td width="20%">Duration:</td><td id="audio_duration">&nbsp;</td></tr>
+                        <tr><td width="20%">Position:</td><td id="audio_position">&nbsp;</td></tr>
+                    </table></div>
+                </div>
+        </ul>
+        <h2 class="mblHeading">Action</h2>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" onclick="playAudio();">Play/Unpause Audio</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="pauseAudio();">Pause Playing Audio</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="stopAudio();">Stop Playing Audio</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="recordAudio();">Record Audio for 10 sec</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="playRecording();">Play/Unpause Recording</li>
+        </ul>
+    </div>
+  </body>
+</html>      
