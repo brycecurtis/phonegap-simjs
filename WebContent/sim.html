@@ -19,35 +19,18 @@
 
 <script>
 
-var control;
-var simulator;
-var simdiv;
-var divider;
 var iframeWindow;
 
 function rand(max) {
     return Math.random()*max;
 }
 
-
 dojo.addOnLoad(function() {
-    simulator = document.getElementById("simulator");
     setDevice();
     nextAccel();
     nextHeading();
     nextGeolocation();
-    
-    setSize(480, 800);
 });
-
-/**
- * Set the size of the device
- */
-function setSize(w, h) {
-    simulator.style.width = w+"px";
-    simulator.style.height = h+"px";
-    simulator.style.visibility = "visible";
-}
 
 </script>
 
@@ -95,6 +78,37 @@ function setSize(w, h) {
                     <td><label for="uuid">UUID:</label></td>
                     <td><input type="text" name="uuid" value="" dojoType="dijit.form.TextBox" id="uuid" onchange="saveDevice()"></td>
                 </tr>
+                <tr>
+                    <td><label for="deviceSize">Size:</label></td>
+                    <td>
+                    <input type="text" name="deviceWidth" value="" dojoType="dijit.form.TextBox" id="deviceWidth" style="width:50px;" onchange="setDeviceSize()">
+                    x
+                    <input type="text" name="deviceHeight" value="" dojoType="dijit.form.TextBox" id="deviceHeight" style="width:50px;" onchange="setDeviceSize()">
+                    (w x h pixels)
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="deviceOrient">Orientation:</label></td>
+                    <td>
+                        <form id="deviceOrientForm">
+                        <input type="radio" name="deviceOrient" id="deviceOrientProfile" value="p" checked onchange="setDeviceSize()"/>
+                        <label for="deviceOrientProfile">Profile</label>
+                        
+                        <input type="radio" name="deviceOrient" id="deviceOrientLandscape" value="l" onchange="setDeviceSize()"/>
+                        <label for="deviceOrientLandscape">Landscape</label>
+                        </form>
+                        <script>
+                            function getDeviceOrient() {
+                                var el = dojo.byId("deviceOrientForm");
+                                for (var i=0; i<el.deviceOrient.length; i++) {
+                                    if (el.deviceOrient[i].checked) {
+                                        return el.deviceOrient[i].value;
+                                    }
+                                }
+                            }
+                        </script>
+                    </td>
+                </tr>
             </table>
             <!-- button dojoType="dijit.form.Button" type=button onClick="saveDevice();">Update</button -->
             <script>
@@ -118,9 +132,57 @@ function setSize(w, h) {
                     var platform = localStorage.devicePlatform;
                     var version = localStorage.deviceVersion;
                     var uuid = localStorage.deviceUuid;
+                    var width = localStorage.deviceWidth;
+                    var height = localStorage.deviceHeight;
+                    var orient = localStorage.deviceOrient;
                     dojo.byId("platform").value = platform ? platform : "Android";
                     dojo.byId("version").value = version ? version : "2.2";
                     dojo.byId("uuid").value = uuid ? uuid : "UUID";
+                    dojo.byId("deviceWidth").value = width ? width : 480;
+                    dojo.byId("deviceHeight").value = height ? height : 800;
+                    if (orient === 'l') {
+                        delete dojo.byId("deviceOrientProfile").checked;
+                    	dojo.byId("deviceOrientLandscape").checked = true;
+                    }
+                    else {
+                        dojo.byId("deviceOrientProfile").checked = true;
+                        delete dojo.byId("deviceOrientLandscape").checked;                    	
+                    }
+                    setDeviceSize();
+                }
+                /**
+                 * Size has changed in UI
+                 */
+                function setDeviceSize() {
+                    console.log("setDeviceSize()");
+                    // New values
+                    var width = dojo.byId("deviceWidth").value;
+                    var height = dojo.byId("deviceHeight").value;
+                    var orient = getDeviceOrient();
+                    
+                    // Current values
+                    var simulator = dojo.byId("simulator");
+                    var curWidth = simulator.simWidth;
+                    var curHeight = simulator.simHeight;
+                    var curOrient = simulator.simOrient;
+                    //console.log("w,h="+width+","+height+"  cur w,h="+curWidth+","+curHeight);
+                    
+                    // If changed, then update
+                    if ((curWidth != width) || (curHeight != height) || (orient != curOrient)) {
+                        simulator.simWidth = width;
+                        simulator.simHeight = height;
+                        simulator.simOrient = orient;
+                        if (orient === 'p') {
+                            simulator.style.width = width+"px";
+                            simulator.style.height = height+"px";
+                        }
+                        else {
+                            simulator.style.width = height+"px";
+                            simulator.style.height = width+"px";
+                        }
+                        saveDevice();
+                    }
+                    simulator.style.visibility = "visible";
                 }
                 /**
                  * Save settings to storage
@@ -130,6 +192,9 @@ function setSize(w, h) {
                     localStorage.devicePlatform = dojo.byId("platform").value;
                     localStorage.deviceVersion = dojo.byId("version").value;
                     localStorage.deviceUuid = dojo.byId("uuid").value;
+                    localStorage.deviceWidth = dojo.byId("deviceWidth").value;
+                    localStorage.deviceHeight = dojo.byId("deviceHeight").value;
+                    localStorage.deviceOrient = getDeviceOrient();
                 }
             </script>
         </div>
