@@ -75,3 +75,53 @@ function _pg_sim_loadjsfiles() {
 }
 _pg_sim_loadjsfiles();
 
+
+/**
+ * Show popup
+ * 
+ * @param title		The title of the popup
+ * @param content	The content of the popup
+ */
+function showPopUp(title, content) {
+	var div = _pg_sim_div;
+	if (!div) {
+		div = document.createElement('div');
+		div.innerHTML = '';
+		div.style.color = "white";
+		div.style.position = "absolute";
+		div.style.left = (window.innerWidth / 2 - 200) + "px";
+		div.style.top = "100px";
+		div.style.width = "400px";
+		div.style.height = "300px";
+		div.style.background = "gray";
+		div.style.border = "2px solid white";
+		div.style.visibility = "hidden";
+		//div.onclick = function() {
+		//	this.style.visibility = "hidden";
+		//};
+		document.body.appendChild(div);
+		_pg_sim_div = div;
+	}
+
+	div.innerHTML = "<div style='background:darkgray;color:white;font-size:larger;'><center>"+title+"</center></div>" +
+		"<div style='padding:5px;'>"+content+"</div>" +
+		"<div style='position:absolute;bottom:0px;left:0px;width:100%;background:darkgray;text-align:right;'><button onclick='hidePopUp();'>OK</button></div>";
+	div.style.visibility = "visible";
+}
+
+/**
+ * Hide popup
+ */
+function hidePopUp() {
+	if (_pg_sim_div) {
+		_pg_sim_div.style.visibility = "hidden";
+	}
+}
+
+/**
+ * Popup div
+ */
+_pg_sim_div = null;
+
+// Send parent frame our window object
+parent.iframeWindow = window;

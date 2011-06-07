@@ -96,7 +96,8 @@ PhoneGap.addConstructor(function() {
  * Simulate acceleration
  */
 Accelerometer.prototype.getNext = function() {
-	return new Acceleration(rand(10),rand(10),rand(10));
+	//return new Acceleration(rand(10),rand(10),rand(10));
+	return parent.getAccel();
 };
 
 };

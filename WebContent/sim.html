@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>PhoneGap Simulator</title>
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" djConfig="parseOnLoad: true"></script>
+<script type="text/javascript">
+            dojo.require("dijit.layout.ContentPane");
+            dojo.require("dijit.layout.BorderContainer");
+            dojo.require("dijit.layout.TabContainer");
+            dojo.require("dijit.layout.AccordionContainer");
+            dojo.require("dijit.form.TextBox");
+</script>
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css" />
+        <style type="text/css">
+            html, body { width: 100%; height: 100%; margin: 0; overflow:hidden; }
+            #borderContainerTwo { width: 100%; height: 100%; }
+        </style>
+
+<script>
+
+var control;
+var simulator;
+var simdiv;
+var divider;
+var iframeWindow;
+
+function rand(max) {
+    return Math.random()*max;
+}
+
+
+dojo.addOnLoad(function() {
+    simulator = document.getElementById("simulator");
+    setDevice();
+    nextAccel();
+    nextHeading();
+    nextGeolocation();
+    
+    setSize(480, 800);
+});
+
+/**
+ * Set the size of the device
+ */
+function setSize(w, h) {
+    simulator.style.width = w+"px";
+    simulator.style.height = h+"px";
+    simulator.style.visibility = "visible";
+}
+
+</script>
+
+</head>
+<body class="claro">
+
+<!-- BorderContainer -->
+<div dojoType="dijit.layout.BorderContainer" gutters="true" id="borderContainerTwo" liveSplitters="false">
+
+    <!-- Header container -->
+    <div dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size1:larger;">
+       <button dojoType="dijit.form.Button" type=button onClick="iframeBack();" style="float:left;">Prev</button>
+       <span style="font-size:larger">PhoneGap Simulator</span>
+       <button dojoType="dijit.form.Button" type=button onClick="iframeForward();" style="float:right;">Next</button>
+       <script>
+            function iframeBack() {
+                if (iframeWindow) {
+                    iframeWindow.history.back();
+                }
+            }
+            function iframeForward() {
+                if (iframeWindow) {
+                    iframeWindow.history.forward();
+                }
+            }
+       </script>
+    </div>
+    <!-- end Header container -->
+    
+    <!-- AccordionContainer -->
+    <div dojoType="dijit.layout.AccordionContainer" minSize="20" style="width: 300px;" id="leftAccordion" region="leading" splitter="true">
+    
+        <!-- Device -->
+        <div dojoType="dijit.layout.AccordionPane" title="Device" selected="true">
+            <table style="cellspacing:10;">
+                <tr>
+                    <td><label for="platform">Platform:</label></td>
+                    <td><input type="text" name="platform" value="" dojoType="dijit.form.TextBox" id="platform" onchange="saveDevice()"></td>
+                </tr>
+                <tr>
+                    <td><label for="version">Version:</label></td>
+                    <td><input type="text" name="version" value="" dojoType="dijit.form.TextBox" id="version" onchange="saveDevice()"></td>
+                </tr>
+                <tr>
+                    <td><label for="uuid">UUID:</label></td>
+                    <td><input type="text" name="uuid" value="" dojoType="dijit.form.TextBox" id="uuid" onchange="saveDevice()"></td>
+                </tr>
+            </table>
+            <!-- button dojoType="dijit.form.Button" type=button onClick="saveDevice();">Update</button -->
+            <script>
+                /**
+                 * Return device object to iframe
+                 */
+                function getDevice() {
+                    var r = {};
+                    r.platform = dojo.byId("platform").value;
+                    r.version = dojo.byId("version").value;
+                    r.name = "";
+                    r.uuid = dojo.byId("uuid");
+                    r.phonegap = "0.9.5";
+                    r.available = true;
+                    return r;
+                }
+                /**
+                 * Restore settings from storage
+                 */
+                function setDevice() {
+                    var platform = localStorage.devicePlatform;
+                    var version = localStorage.deviceVersion;
+                    var uuid = localStorage.deviceUuid;
+                    dojo.byId("platform").value = platform ? platform : "Android";
+                    dojo.byId("version").value = version ? version : "2.2";
+                    dojo.byId("uuid").value = uuid ? uuid : "UUID";
+                }
+                /**
+                 * Save settings to storage
+                 */
+                function saveDevice() {
+                    console.log("saveDevice()");
+                    localStorage.devicePlatform = dojo.byId("platform").value;
+                    localStorage.deviceVersion = dojo.byId("version").value;
+                    localStorage.deviceUuid = dojo.byId("uuid").value;
+                }
+            </script>
+        </div>
+        <!-- end Device -->
+        
+        <!-- Accelerometer -->
+        <div dojoType="dijit.layout.AccordionPane" title="Accelerometer">
+            <table style="cellspacing:10;">
+                <tr>
+                    <td><label for="accelX">X:</label></td>
+                    <td><input type="text" name="accelX" value="" dojoType="dijit.form.TextBox" id="accelX"></td>
+                </tr>
+                <tr>
+                    <td><label for="accelY">Y:</label></td>
+                    <td><input type="text" name="accelY" value="" dojoType="dijit.form.TextBox" id="accelY"></td>
+                </tr>
+                <tr>
+                    <td><label for="accelZ">Z:</label></td>
+                    <td><input type="text" name="accelZ" value="" dojoType="dijit.form.TextBox" id="accelZ"></td>
+                </tr>
+            </table>
+            <button dojoType="dijit.form.Button" type=button onClick="nextAccel();">Next</button>
+            <script>
+                function getAccel() {
+                    var r = {};
+                    r.x = dojo.byId("accelX").value;
+                    r.y = dojo.byId("accelY").value;
+                    r.z = dojo.byId("accelZ").value;
+                    return r;
+                }
+                function nextAccel() {
+                    dojo.byId("accelX").value = rand(10);
+                    dojo.byId("accelY").value = rand(10);
+                    dojo.byId("accelZ").value = rand(10);
+                }
+            </script>
+        </div>
+        <!-- end Accelerometer -->
+        
+        <div dojoType="dijit.layout.AccordionPane" title="Camera">
+        </div>
+        
+        <div dojoType="dijit.layout.AccordionPane" title="Capture">
+        </div>
+        
+        <!-- Compass -->
+        <div dojoType="dijit.layout.AccordionPane" title="Compass">
+            <table style="cellspacing:10;">
+                <tr>
+                    <td><label for="heading">Heading:</label></td>
+                    <td><input type="text" name="heading" value="" dojoType="dijit.form.TextBox" id="heading"></td>
+                </tr>
+            </table>
+            <button dojoType="dijit.form.Button" type=button onClick="nextHeading();">Next</button>
+            <script>
+                function getHeading() {
+                    var r = dojo.byId("heading").value;
+                    return r;
+                }
+                function nextHeading() {
+                    dojo.byId("heading").value = rand(360);
+                }
+            </script>
+        </div>
+        <!-- end Compass -->
+
+        <div dojoType="dijit.layout.AccordionPane" title="Contacts">
+        </div>
+
+        <!-- Geolocation -->
+        <div dojoType="dijit.layout.AccordionPane" title="Geolocation">
+            <table style="cellspacing:10;">
+                <tr>
+                    <td><label for="geoLat">Latitude:</label></td>
+                    <td><input type="text" name="geoLat" value="" dojoType="dijit.form.TextBox" id="geoLat"></td>
+                </tr>
+                <tr>
+                    <td><label for="geoLng">Longitude:</label></td>
+                    <td><input type="text" name="geoLng" value="" dojoType="dijit.form.TextBox" id="geoLng"></td>
+                </tr>
+                <tr>
+                    <td><label for="geoAcc">Accuracy:</label></td>
+                    <td><input type="text" name="geoAcc" value="" dojoType="dijit.form.TextBox" id="geoAcc"></td>
+                </tr>
+
+                <tr>
+                    <td><label for="geoAlt">Altitude:</label></td>
+                    <td><input type="text" name="geoAlt" value="" dojoType="dijit.form.TextBox" id="geoAlt"></td>
+                </tr>
+                <tr>
+                    <td><label for="geoAltAcc">Altitude Accuracy:</label></td>
+                    <td><input type="text" name="geoAltAcc" value="" dojoType="dijit.form.TextBox" id="geoAltAcc"></td>
+                </tr>
+
+                <tr>
+                    <td><label for="geoHead">Heading:</label></td>
+                    <td><input type="text" name="geoHead" value="" dojoType="dijit.form.TextBox" id="geoHead"></td>
+                </tr>
+                <tr>
+                    <td><label for="geoVel">Velocity:</label></td>
+                    <td><input type="text" name="geoVel" value="" dojoType="dijit.form.TextBox" id="geoVel"></td>
+                </tr>
+
+            </table>
+            <button dojoType="dijit.form.Button" type=button onClick="nextGeolocation();">Next</button>
+            <script>
+                function getGeolocation() {
+                    var r = {};
+                    r.latitude = dojo.byId("geoLat").value;
+                    r.longitude = dojo.byId("geoLng").value;
+                    r.accuracy = dojo.byId("geoAcc").value;
+                    r.altitude = dojo.byId("geoAlt").value;
+                    r.heading = dojo.byId("geoHead").value;
+                    r.speed = dojo.byId("geoVel").value;
+                    r.altitudeAccuracy = dojo.byId("geoAltAcc").value;
+                    return {coords: r};
+                }
+                function nextGeolocation() {
+                    dojo.byId("geoLat").value = rand(100);
+                    dojo.byId("geoLng").value = rand(100);
+                    dojo.byId("geoAcc").value = rand(100);
+                    dojo.byId("geoAlt").value = rand(10000);
+                    dojo.byId("geoAltAcc").value = 1;
+                    dojo.byId("geoHead").value = rand(360);
+                    dojo.byId("geoVel").value = rand(100);
+                }
+            </script>
+        </div>
+        <!-- end Geolocation -->
+        
+        <div dojoType="dijit.layout.AccordionPane" title="Media">
+        </div>
+        
+        <!-- Network -->
+        <div dojoType="dijit.layout.AccordionPane" title="Network">
+            <form id="networkForm">
+                <label for="networkNo">Not Reachable</label>
+                <input type="radio" name="networkType" id="networkNo" value="0" />
+                <br />
+                <label for="networkCarrier">Carrier Network</label>
+                <input type="radio" name="networkType" id="networkCarrier" checked value="1" />
+                <br />
+                <label for="networkWifi">WiFi Network</label>
+                <input type="radio" name="networkType" id="networkWifi" value="2" />
+            </form>
+            <script>
+                function getNetwork() {
+                    var el = dojo.byId("networkForm");
+                    for (var i=0; i<el.networkType.length; i++) {
+                        if (el.networkType[i].checked) {
+                            return el.networkType[i].value;
+                        }
+                    }
+                }
+            </script>
+        </div>
+        <!-- end Network -->
+        
+    </div>
+    <!-- end AccordionContainer -->
+    
+    <!-- Simulator container -->
+    <div dojoType="dijit.layout.ContentPane" region="center" tabStrip="true">
+        <iframe id="simulator" style="width1:480px;height1:800px;visibility:hidden;" src="index.html"></iframe>
+    </div>
+    <!-- end Simulator container -->
+    
+</div>
+<!-- end BorderContainer -->
+
+</body>
+</html>

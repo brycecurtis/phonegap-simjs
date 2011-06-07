@@ -90,7 +90,7 @@ PhoneGap.addConstructor(function() {
  * Simulate compass
  */
 Compass.prototype.getNext = function() {
-	return rand(360);
+	return parent.getHeading();
 };
 
 };

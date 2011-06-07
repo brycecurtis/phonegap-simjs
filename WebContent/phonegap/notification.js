@@ -55,7 +55,7 @@ Notification.prototype.confirm = function(message, resultCallback, title, button
  */
 Notification.prototype.activityStart = function() {
 	console.log("Notification.activityStart()");
-	navigator.notification.showPopUp("Activity", "Activity started.");
+	showPopUp("Activity", "Activity started.");
 
 };
 
@@ -64,7 +64,7 @@ Notification.prototype.activityStart = function() {
  */
 Notification.prototype.activityStop = function() {
 	console.log("Notification.activityStop()");
-	navigator.notification.hidePopUp();
+	hidePopUp();
 };
 
 /**
@@ -75,7 +75,7 @@ Notification.prototype.activityStop = function() {
  */
 Notification.prototype.progressStart = function(title, message) {
 	console.log("Notification.progressStart(): Title="+title+" message="+message);
-	navigator.notification.showPopUp("Progress", "Progress started.<br>Title: "+title+"<br>Message: "+message);
+	showPopUp("Progress", "Progress started.<br>Title: "+title+"<br>Message: "+message);
 };
 
 /**
@@ -85,7 +85,7 @@ Notification.prototype.progressStart = function(title, message) {
  */
 Notification.prototype.progressValue = function(value) {
 	console.log("Notification.progressValue("+value+")");
-	navigator.notification.showPopUp("Progress", "Progress value = "+value);
+	showPopUp("Progress", "Progress value = "+value);
 };
 
 /**
@@ -93,7 +93,7 @@ Notification.prototype.progressValue = function(value) {
  */
 Notification.prototype.progressStop = function() {
 	console.log("Notification.progressStop()");
-	navigator.notification.showPopUp("Progress", "Progress stopped.");
+	hidePopUp();
 };
 
 /**
@@ -103,7 +103,7 @@ Notification.prototype.progressStop = function() {
  * @param {String} colour       The colour of the light.
  */
 Notification.prototype.blink = function(count, colour) {
-	navigator.notification.showPopUp("Blink", "Blink "+count+" times with color "+colour+".");
+	showPopUp("Blink", "Blink "+count+" times with color "+colour+".");
 };
 
 /**
@@ -112,7 +112,7 @@ Notification.prototype.blink = function(count, colour) {
  * @param {Integer} mills       The number of milliseconds to vibrate for.
  */
 Notification.prototype.vibrate = function(mills) {
-	navigator.notification.showPopUp("Vibrate", "Vibrate for "+mills+" ms.");
+	showPopUp("Vibrate", "Vibrate for "+mills+" ms.");
 };
 
 /**
@@ -122,43 +122,13 @@ Notification.prototype.vibrate = function(mills) {
  * @param {Integer} count       The number of beeps.
  */
 Notification.prototype.beep = function(count) {
-	navigator.notification.showPopUp("Beep", "Beep "+count+" times.");
+	showPopUp("Beep", "Beep "+count+" times.");
 };
 
 PhoneGap.addConstructor(function() {
     if (typeof navigator.notification === "undefined") {
         navigator.notification = new Notification();
-        var div = document.createElement('div');
-        div.innerHTML = '';
-        div.style.color = "white";
-        div.style.position = "absolute";
-        div.style.left = (window.innerWidth / 2 - 200) + "px";
-        div.style.top = "100px";
-        div.style.width = "400px";
-        div.style.height = "300px";
-        div.style.background = "gray";
-        div.style.border = "2px solid red";
-        div.style.visibility = "hidden";
-        div.onclick = function() {
-        	this.style.visibility = "hidden";
-        };
-        document.body.appendChild(div);
-        navigator.notification.div = div;
     }
 });
-
-// TODO: Move this to base?
-Notification.prototype.showPopUp = function(title, content) {
-	navigator.notification.div.innerHTML = "<div style='background:darkgray;color:white;font-size:larger;'><center>"+title+"</center></div>" +
-		"<div style='padding:5px;'>"+content+"</div>" +
-		"<div style='position:absolute;bottom:0px;left:0px;width:100%;font-size:smaller;background:darkgray;text-align:center;'>Click to close</div>";
-	navigator.notification.div.style.visibility = "visible";
-};
-
-Notification.prototype.hidePopUp = function() {
-	if (navigator.notification.div) {
-		navigator.notification.div.style.visibility = "hidden";
-	}
-};
 
 };

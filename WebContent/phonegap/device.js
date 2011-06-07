@@ -16,12 +16,16 @@ PhoneGap.addResource("device");
  */
 var Device = function() {
     console.log("Device()");
-    this.platform = "Android";
-    this.version = "2.2";
-    this.name = "";
-    this.uuid = "UUID";
-    this.phonegap = "0.9.5";
-    this.available = true;
+    var r = parent.getDevice();
+    for (var i in r) {
+    	this[i] = r[i];
+    }
+    //this.platform = "Android";
+    //this.version = "2.2";
+    //this.name = "";
+    //this.uuid = "UUID";
+    //this.phonegap = "0.9.5";
+    //this.available = true;
 };
 
 /**

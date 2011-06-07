@@ -55,7 +55,7 @@ PhoneGap.addConstructor(function() {
  * Simulate network connection
  */
 Network.prototype.getNext = function() {
-	return NetworkStatus.REACHABLE_VIA_WIFI_NETWORK = 2;
+	return parent.getNetwork(); //NetworkStatus.REACHABLE_VIA_WIFI_NETWORK = 2;
 };
 
 };

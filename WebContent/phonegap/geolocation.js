@@ -150,6 +150,8 @@ PhoneGap.addConstructor(function() {
  * Simulate geolocation
  */
 Geolocation.prototype.getNext = function() {
+	return parent.getGeolocation();
+	/*
 	var lat = rand(100);
 	var lng = rand(100);
 	var alt = rand(10000);
@@ -157,7 +159,7 @@ Geolocation.prototype.getNext = function() {
 	var head = rand(360);
 	var vel = rand(100);
     var coords =  new Coordinates(lat, lng, alt, altacc, head, vel);
-    return {coords: coords};
+    return {coords: coords};*/
 };
 
 };
