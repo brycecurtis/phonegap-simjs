@@ -149,7 +149,70 @@ Contact.prototype.clone = function() {
 * @param errorCB error callback
 */
 Contact.prototype.save = function(successCB, errorCB) {
-    PhoneGap.exec(successCB, errorCB, "Contacts", "save", [this]);
+    var helper = new ContactSQLHelper();
+    var saveContact = function(tx) {
+        if (me.id == null) {
+            tx.executeSql(helper.insertContact(me));
+            // Name
+            if (me.name != null) {
+                tx.executeSql(helper.insertName(me));
+            }
+            // Phone Numbers
+            if (me.phoneNumbers != null) {
+                for (var i=0; i < me.phoneNumbers.length; i++) {
+                    tx.executeSql(helper.insertField(me.phoneNumbers[i], "phone"));                    
+                }
+            }            
+            // Emails
+            if (me.emails != null) {
+                for (var i=0; i < me.emails.length; i++) {
+                    tx.executeSql(helper.insertField(me.emails[i], "email"));                    
+                }
+            }            
+            // IMs
+            if (me.ims != null) {
+                for (var i=0; i < me.ims.length; i++) {
+                    tx.executeSql(helper.insertField(me.ims[i], "im"));                    
+                }
+            }            
+            // Photos
+            if (me.photos != null) {
+                for (var i=0; i < me.photos.length; i++) {
+                    tx.executeSql(helper.insertField(me.photos[i], "photo"));                    
+                }
+            }            
+            // Categories
+            if (me.categories != null) {
+                for (var i=0; i < me.categories.length; i++) {
+                    tx.executeSql(helper.insertField(me.categories[i], "category"));                    
+                }
+            }            
+            // URLs
+            if (me.urls != null) {
+                for (var i=0; i < me.urls.length; i++) {
+                    tx.executeSql(helper.insertField(me.urls[i], "url"));                    
+                }
+            }            
+            // Addresses
+            if (me.addresses != null) {
+                for (var i=0; i < me.addresses.length; i++) {
+                    tx.executeSql(helper.insertAddress(me.addresses[i]));                    
+                }
+            }            
+            // Organizations
+            if (me.organizations != null) {
+                for (var i=0; i < me.organizations.length; i++) {
+                    tx.executeSql(helper.insertOrganization(me.organizations[i]));                    
+                }
+            }            
+        } else {
+            tx.executeSql(helper.updateContact(me));
+        }
+                
+    };
+    var me = this;
+    var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
+    db.transaction(saveContact);
 };
 
 /**
@@ -231,6 +294,17 @@ var ContactOrganization = function(name, dept, title) {
 * @constructor
 */
 var Contacts = function() {
+    var createDB = function(tx) {
+        tx.executeSql('CREATE TABLE IF NOT EXISTS CONTACTS (id INTEGER PRIMARY KEY, displayName, nickname, revision, birthday, gender, note, timezone)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS NAMES (id INTEGER PRIMARY KEY, rawId, formatted, familyName, givenName, middleName, honorificPrefix, honorificSuffix)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS FIELDS (id INTEGER PRIMARY KEY, rawId, type, value, pref, mimetype)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ADDRESSES (id INTEGER PRIMARY KEY, rawId, formatted, streetAddress, locality, region, postalCode, country)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ORGANIZATIONS (id INTEGER PRIMARY KEY, rawId, name, department, title)');
+    }
+
+    var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
+    db.transaction(createDB);
+    
     this.inProgress = false;
     this.records = [];
 };
@@ -293,6 +367,96 @@ var ContactFindOptions = function(filter, multiple, updatedSince) {
     this.filter = filter || '';
     this.multiple = multiple || true;
     this.updatedSince = updatedSince || '';
+};
+
+var ContactSQLHelper = function() {
+};
+
+ContactSQLHelper.prototype.insertContact = function(contact) {
+  return ('INSERT INTO CONTACTS (displayName, nickname, revision, birthday, gender, note, timezone) VALUES ("' +
+            contact.displayName +
+            '", "' +
+            contact.nickname +
+            '", "' +
+            contact.revision +
+            '", "' +
+            contact.birthday +
+            '", "' +
+            contact.gender +
+            '", "' +
+            contact.note +
+            '", "' +
+            contact.timezone +
+            '")');  
+};
+
+ContactSQLHelper.prototype.insertName = function(contact, mimetype) {
+  return ('INSERT INTO NAMES (rawId, formatted, familyName, givenName, middleName, honorificPrefix, honorificSuffix) VALUES ("' +
+            '1' +
+            '", "' +
+            contact.name.formatted +
+            '", "' +
+            contact.name.familyName +
+            '", "' +
+            contact.name.givenName +
+            '", "' +
+            contact.name.middleName +
+            '", "' +
+            contact.name.honorificPrefix +
+            '", "' +
+            contact.name.honorificSuffix +
+            '")');  
+};
+
+ContactSQLHelper.prototype.insertField = function(field, mimetype) {
+  return ('INSERT INTO FIELDS (rawId, type, value, pref, mimetype) VALUES ("' +
+            '1' +
+            '", "' +
+            field.type +
+            '", "' +
+            field.value +
+            '", "' +
+            field.pref +
+            '", "' +
+            mimetype +
+            '")');  
+};
+
+ContactSQLHelper.prototype.insertAddress = function(address) {
+  return ('INSERT INTO ADDRESSES (rawId, formatted, streetAddress, locality, region, postalCode, country) VALUES ("' +
+            '1' +
+            '", "' +
+            address.formatted +
+            '", "' +
+            address.streetAddress +
+            '", "' +
+            address.locality +
+            '", "' +
+            address.region +
+            '", "' +
+            address.postalCode +
+            '", "' +
+            address.country +
+            '")');  
+};
+
+ContactSQLHelper.prototype.insertOrganization = function(org) {
+  return ('INSERT INTO ORGANIZATIONS (rawId, name, department, title) VALUES ("' +
+            '1' +
+            '", "' +
+            org.name +
+            '", "' +
+            org.department +
+            '", "' +
+            org.title +
+            '")');  
+};
+
+ContactSQLHelper.prototype.updateContact = function(contact) {
+  return ('UPDATE CONTACTS SET displayName = "' + me.displayName + '", nickname = "' + me.nickname + '",' +
+            ' revision = "' + me.revision + '", birthday = "' + me.birthday + '", gender = "' + me.gender + '",' +
+            ' note = "' + me.note + '", timezone = "' + me.timezone + '"' +
+            ' where id = ' + me.id);  
 };
 
 /**

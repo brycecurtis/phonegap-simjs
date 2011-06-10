@@ -75,6 +75,7 @@
         */
         try{
             var contact = navigator.service.contacts.create({"displayName": "Bryce User"});
+            //contact.id = 1;
             var contactName = {
                 formatted: "Dooney User",
                 familyName: "User",
@@ -83,11 +84,20 @@
             };
 
             contact.name = contactName;
-            contact.gender = "female";
+            contact.gender = "male";
+            contact.note = "This is my note";
 
             var phoneNumbers = [1];
             phoneNumbers[0] = new ContactField('work', '512-555-1234', true);
             contact.phoneNumbers = phoneNumbers;
+            
+            var org = [1];
+            org[0] = new ContactOrganization("IBM", "Emerging Tech", "Engineer");
+            contact.organizations = org;
+            
+            var addresses = [1];
+            addresses[0] = new ContactAddress(null, "1 IBM way", "Ottawa", "ON", "K2H 5K9", "Canada");
+            contact.addresses = addresses;
 
             contact.save(
                 function() { alert("Contact saved.");},
@@ -101,11 +111,23 @@
 
     };
     
+    function cleanContacts() {
+        var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
+        db.transaction(function(tx) {
+            console.log("We are in create DB 2");
+            tx.executeSql('DELETE FROM CONTACTS');
+            tx.executeSql('DELETE FROM NAMES');
+            tx.executeSql('DELETE FROM FIELDS');
+            tx.executeSql('DELETE FROM ADDRESSES');
+            tx.executeSql('DELETE FROM ORGANIZATIONS');
+        });
+    };
+    
     /**
      * Function called when page has finished loading.
      */
     function init() {
-        console.log("accelerometer.init()");
+        console.log("contacts.init()");
         document.addEventListener("deviceready", function() {deviceReady = true;}, false);
         window.setTimeout(function() {
             if (!deviceReady) {
@@ -130,6 +152,7 @@
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
             <li dojoType="dojox.mobile.ListItem" onclick="getContacts();">Get Contacts</li>
             <li dojoType="dojox.mobile.ListItem" onclick="addContact();">Add a new Contact</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="cleanContacts();">Clean Contact DB</li>
         </ul>
     </div>
   </body>
