@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>PhoneGap Simulator</title>
+<script src="filesim.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
             dojo.require("dijit.layout.ContentPane");
@@ -20,6 +21,7 @@
 <script>
 
 var iframeWindow;
+var iframeDocument;
 
 function rand(max) {
     return Math.random()*max;
@@ -56,12 +58,21 @@ dojo.addOnLoad(function() {
                     iframeWindow.history.forward();
                 }
             }
+            function fireEvent(type) {
+                console.log("fireEvent("+type+")");
+                if (iframeDocument) {
+                    var e = iframeDocument.createEvent('Events');
+                    e.initEvent(type);
+                    iframeDocument.dispatchEvent(e);
+                }
+            };
+
        </script>
     </div>
     <!-- end Header container -->
     
     <!-- AccordionContainer -->
-    <div dojoType="dijit.layout.AccordionContainer" minSize="20" style="width: 300px;" id="leftAccordion" region="leading" splitter="true">
+    <div dojoType="dijit.layout.AccordionContainer" minSize="20" style1="width: 350px;" id="leftAccordion" region="leading" splitter="true">
     
         <!-- Device -->
         <div dojoType="dijit.layout.AccordionPane" title="Device" selected="true">
@@ -109,6 +120,16 @@ dojo.addOnLoad(function() {
                         </script>
                     </td>
                 </tr>
+                <tr style="border:1px solid blue;">
+                    <td style="text-valign:top;" valign="top"><label>Events:</label></td>
+                    <td style="border:1px solid lightgray;">
+                        <button dojoType="dijit.form.Button" type=button onClick="fireEvent('pause')">Pause</button>
+                        <button dojoType="dijit.form.Button" type=button onClick="fireEvent('resume')">Resume</button><br>
+                        <button dojoType="dijit.form.Button" type=button onClick="fireEvent('backbutton')">Back button</button><br>
+                        <button dojoType="dijit.form.Button" type=button onClick="fireEvent('menubutton')">Menu button</button><br>
+                        <button dojoType="dijit.form.Button" type=button onClick="fireEvent('searchbutton')">Search button</button>
+                    </td>
+                </tr>
             </table>
             <!-- button dojoType="dijit.form.Button" type=button onClick="saveDevice();">Update</button -->
             <script>
@@ -119,7 +140,7 @@ dojo.addOnLoad(function() {
                     var r = {};
                     r.platform = dojo.byId("platform").value;
                     r.version = dojo.byId("version").value;
-                    r.name = "";
+                    r.name = "simjs";
                     r.uuid = dojo.byId("uuid");
                     r.phonegap = "0.9.5";
                     r.available = true;
@@ -167,6 +188,12 @@ dojo.addOnLoad(function() {
                     var curOrient = simulator.simOrient;
                     //console.log("w,h="+width+","+height+"  cur w,h="+curWidth+","+curHeight);
                     
+                    // If orientation changed, then we need to fire event
+                    var fireOrient = false;
+                    if (curOrient && curOrient != orient) {
+                    	fireOrient = true;
+                    }
+                    
                     // If changed, then update
                     if ((curWidth != width) || (curHeight != height) || (orient != curOrient)) {
                         simulator.simWidth = width;
@@ -183,6 +210,11 @@ dojo.addOnLoad(function() {
                         saveDevice();
                     }
                     simulator.style.visibility = "visible";
+                    
+                    // Fire orientation event
+                    if (fireOrient) {
+                    	fireEvent("orientation")
+                    }
                 }
                 /**
                  * Save settings to storage
@@ -220,9 +252,9 @@ dojo.addOnLoad(function() {
             <script>
                 function getAccel() {
                     var r = {};
-                    r.x = dojo.byId("accelX").value;
-                    r.y = dojo.byId("accelY").value;
-                    r.z = dojo.byId("accelZ").value;
+                    r.x = +(dojo.byId("accelX").value);
+                    r.y = +(dojo.byId("accelY").value);
+                    r.z = +(dojo.byId("accelZ").value);
                     return r;
                 }
                 function nextAccel() {
@@ -263,6 +295,11 @@ dojo.addOnLoad(function() {
 
         <div dojoType="dijit.layout.AccordionPane" title="Contacts">
         </div>
+
+        <!-- File -->
+        <div dojoType="dijit.layout.AccordionPane" title="File">
+        </div>
+        <!-- end File -->
 
         <!-- Geolocation -->
         <div dojoType="dijit.layout.AccordionPane" title="Geolocation">
@@ -310,7 +347,9 @@ dojo.addOnLoad(function() {
                     r.heading = dojo.byId("geoHead").value;
                     r.speed = dojo.byId("geoVel").value;
                     r.altitudeAccuracy = dojo.byId("geoAltAcc").value;
-                    return {coords: r};
+                    var d = new Date();
+                    var t = d.getTime();
+                    return {coords: r, timestamp: t};
                 }
                 function nextGeolocation() {
                     dojo.byId("geoLat").value = rand(100);

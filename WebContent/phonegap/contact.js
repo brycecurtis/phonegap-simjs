@@ -30,7 +30,7 @@ PhoneGap.addResource("contact");
 * @param {Array.<ContactField>} urls contact's web sites
 * @param {DOMString} timezone the contacts time zone
 */
-var Contact = function (id, displayName, name, nickname, phoneNumbers, emails, addresses,
+Contact = function (id, displayName, name, nickname, phoneNumbers, emails, addresses,
     ims, organizations, revision, birthday, gender, note, photos, categories, urls, timezone) {
     this.id = id || null;
     this.rawId = null;
@@ -57,7 +57,7 @@ var Contact = function (id, displayName, name, nickname, phoneNumbers, emails, a
  *  An error code assigned by an implementation when an error has occurreds
  * @constructor
  */
-var ContactError = function() {
+ContactError = function() {
     this.code=null;
 };
 
@@ -225,7 +225,7 @@ Contact.prototype.save = function(successCB, errorCB) {
 * @param prefix
 * @param suffix
 */
-var ContactName = function(formatted, familyName, givenName, middle, prefix, suffix) {
+ContactName = function(formatted, familyName, givenName, middle, prefix, suffix) {
     this.formatted = formatted || null;
     this.familyName = familyName || null;
     this.givenName = givenName || null;
@@ -242,7 +242,7 @@ var ContactName = function(formatted, familyName, givenName, middle, prefix, suf
 * @param value
 * @param pref
 */
-var ContactField = function(type, value, pref) {
+ContactField = function(type, value, pref) {
 	this.id = null;
     this.type = type || null;
     this.value = value || null;
@@ -260,7 +260,7 @@ var ContactField = function(type, value, pref) {
 * @param postalCode
 * @param country
 */
-var ContactAddress = function(formatted, streetAddress, locality, region, postalCode, country) {
+ContactAddress = function(formatted, streetAddress, locality, region, postalCode, country) {
 	this.id = null;
     this.formatted = formatted || null;
     this.streetAddress = streetAddress || null;
@@ -282,7 +282,7 @@ var ContactAddress = function(formatted, streetAddress, locality, region, postal
 * @param location
 * @param desc
 */
-var ContactOrganization = function(name, dept, title) {
+ContactOrganization = function(name, dept, title) {
 	this.id = null;
     this.name = name || null;
     this.department = dept || null;
@@ -363,7 +363,7 @@ Contacts.prototype.cast = function(pluginResult) {
  * @param multiple boolean used to determine if more than one contact should be returned
  * @param updatedSince return only contact records that have been updated on or after the given time
  */
-var ContactFindOptions = function(filter, multiple, updatedSince) {
+ContactFindOptions = function(filter, multiple, updatedSince) {
     this.filter = filter || '';
     this.multiple = multiple || true;
     this.updatedSince = updatedSince || '';

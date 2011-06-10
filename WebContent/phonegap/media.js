@@ -8,6 +8,7 @@
 
 if (!PhoneGap.hasResource("media")) {
 PhoneGap.addResource("media");
+(function() {
 
 /**
  * List of media objects.
@@ -18,6 +19,7 @@ PhoneGap.mediaObjects = {};
 /**
  * Object that receives native callbacks.
  * PRIVATE
+ * @constructor
  */
 PhoneGap.Media = function() {};
 
@@ -73,6 +75,7 @@ PhoneGap.Media.onStatus = function(id, msg, value) {
 /**
  * This class provides access to the device media, interfaces to both sound and video
  *
+ * @constructor
  * @param src                   The file name or url to play
  * @param successCallback       The callback to be called when the file is done playing or recording.
  *                                  successCallback() - OPTIONAL
@@ -166,6 +169,13 @@ Media.prototype.stop = function() {
 };
 
 /**
+ * Seek or jump to a new time in the track..
+ */
+Media.prototype.seekTo = function(milliseconds) {
+    PhoneGap.exec(null, null, "Media", "seekToAudio", [this.id, milliseconds]);
+};
+
+/**
  * Pause playing audio file.
  */
 Media.prototype.pause = function() {
@@ -190,8 +200,6 @@ Media.prototype.getDuration = function() {
 
 /**
  * Get position of audio.
- *
- * @return
  */
 Media.prototype.getCurrentPosition = function(success, fail) {
     console.log("Media.getCurrentPosition()");
@@ -220,4 +228,5 @@ Media.prototype.stopRecord = function() {
 Media.prototype.release = function() {
     PhoneGap.exec(null, null, "Media", "release", [this.id]);
 };
+}());
 };

@@ -70,7 +70,9 @@ function _pg_sim_loadjsfiles() {
 		PhoneGap.onNativeReady.fire();
 		
 		console.log("Calling user's window.onload");
-		_pg_sim_window_onload();
+		if (_pg_sim_window_onload) {
+			_pg_sim_window_onload();
+		}
 	}
 }
 _pg_sim_loadjsfiles();
@@ -125,3 +127,6 @@ _pg_sim_div = null;
 
 // Send parent frame our window object
 parent.iframeWindow = window;
+
+// Send parent frame our document object
+parent.iframeDocument = document;
