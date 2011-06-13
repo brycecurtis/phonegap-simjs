@@ -111,6 +111,47 @@
 
     };
 
+    function updateContact(){
+        console.log("updateContact for Android:");
+
+        try{
+            var contact = navigator.service.contacts.create({"displayName": "Simon User"});
+            contact.id = 1;
+            var contactName = {
+                formatted: "Some Guy",
+                familyName: "Some",
+                givenName: "Guy",
+                middleName: "The"
+            };
+
+            contact.name = contactName;
+            contact.gender = "female";
+            contact.note = "This is another note";
+
+            var phoneNumbers = [1];
+            phoneNumbers[0] = new ContactField('home', '888-555-1234', true);
+            contact.phoneNumbers = phoneNumbers;
+            
+            var org = [1];
+            org[0] = new ContactOrganization("Mitel", "Messaging", "Manager");
+            contact.organizations = org;
+            
+            var addresses = [1];
+            addresses[0] = new ContactAddress(null, "10 IBM way", "Nepean", "ON", "K2H 5K9", "Canada");
+            contact.addresses = addresses;
+
+            contact.save(
+                function() { alert("Contact saved.");},
+                function(e) { alert("Contact save failed: " + e); }
+            );
+            console.log("you have saved the contact");
+        }
+        catch (e){
+            alert(e);
+        }
+
+    };
+
     function removeContact(){
         console.log("removeContact for Android:");
         try{
@@ -170,6 +211,7 @@
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
             <li dojoType="dojox.mobile.ListItem" onclick="getContacts();">Get Contacts</li>
             <li dojoType="dojox.mobile.ListItem" onclick="addContact();">Add a new Contact</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="updateContact();">Update Contact</li>
             <li dojoType="dojox.mobile.ListItem" onclick="removeContact();">Remove Contact</li>
             <li dojoType="dojox.mobile.ListItem" onclick="cleanContacts();">Clean Contact DB</li>
         </ul>

@@ -227,6 +227,94 @@ Contact.prototype.save = function(successCB, errorCB) {
             );
         } else {
             tx.executeSql(helper.updateContact(me));
+            // Name
+            if (me.name != null) {
+                if (me.name.id == null) {
+                    tx.executeSql(helper.insertName(newId, me));
+                } else {
+                    tx.executeSql(helper.updateName(me));
+                }
+            }
+            // Phone Numbers
+            if (me.phoneNumbers != null) {
+                for (var i=0; i < me.phoneNumbers.length; i++) {
+                    if (me.phoneNumbers[i].id == null) {
+                        tx.executeSql(helper.insertField(newId, me.phoneNumbers[i], "phone"));
+                    } else {
+                        tx.executeSql(helper.updateField(me.phoneNumbers[i], "phone"));
+                    }                    
+                }
+            }            
+            // Emails
+            if (me.emails != null) {
+                for (var i=0; i < me.emails.length; i++) {
+                    if (me.emails[i].id == null) {
+                        tx.executeSql(helper.insertField(newId, me.emails[i], "email"));                    
+                    } else {
+                        tx.executeSql(helper.updateField(me.emails[i], "email"));
+                    }                    
+                }
+            }            
+            // IMs
+            if (me.ims != null) {
+                for (var i=0; i < me.ims.length; i++) {
+                    if (me.ims[i].id == null) {
+                        tx.executeSql(helper.insertField(newId, me.ims[i], "im"));                    
+                    } else {
+                        tx.executeSql(helper.updateField(me.ims[i], "im"));
+                    }                    
+                }
+            }            
+            // Photos
+            if (me.photos != null) {
+                for (var i=0; i < me.photos.length; i++) {
+                    if (me.photos[i].id == null) {
+                        tx.executeSql(helper.insertField(newId, me.photos[i], "photo"));                    
+                    } else {
+                        tx.executeSql(helper.updateField(me.photos[i], "photo"));
+                    }                    
+                }
+            }            
+            // Categories
+            if (me.categories != null) {
+                for (var i=0; i < me.categories.length; i++) {
+                    if (me.categories[i].id == null) {
+                        tx.executeSql(helper.insertField(newId, me.categories[i], "category"));                    
+                    } else {
+                        tx.executeSql(helper.updateField(me.categories[i], "category"));
+                    }                    
+                }
+            }            
+            // URLs
+            if (me.urls != null) {
+                for (var i=0; i < me.urls.length; i++) {
+                    if (me.urls[i].id == null) {
+                        tx.executeSql(helper.insertField(newId, me.urls[i], "url"));                    
+                    } else {
+                        tx.executeSql(helper.updateField(me.urls[i], "url"));
+                    }                    
+                }
+            }            
+            // Addresses
+            if (me.addresses != null) {
+                for (var i=0; i < me.addresses.length; i++) {
+                    if (me.addresses[i].id == null) {
+                        tx.executeSql(helper.insertAddress(newId, me.addresses[i]));                    
+                    } else {
+                        tx.executeSql(helper.updateAddress(me.addresses[i]));
+                    }                    
+                }
+            }            
+            // Organizations
+            if (me.organizations != null) {
+                for (var i=0; i < me.organizations.length; i++) {
+                    if (me.organizations[i].id == null) {
+                        tx.executeSql(helper.insertOrganization(newId, me.organizations[i]));                    
+                    } else {
+                        tx.executeSql(helper.updateOrganization(me.organizations[i]));
+                    }                    
+                }
+            }            
         }
                 
     };
@@ -473,10 +561,36 @@ ContactSQLHelper.prototype.insertOrganization = function(newId, org) {
 };
 
 ContactSQLHelper.prototype.updateContact = function(contact) {
-  return ('UPDATE CONTACTS SET displayName = "' + me.displayName + '", nickname = "' + me.nickname + '",' +
-            ' revision = "' + me.revision + '", birthday = "' + me.birthday + '", gender = "' + me.gender + '",' +
-            ' note = "' + me.note + '", timezone = "' + me.timezone + '"' +
-            ' where id = ' + me.id);  
+  return ('UPDATE CONTACTS SET displayName = "' + contact.displayName + '", nickname = "' + contact.nickname + '",' +
+            ' revision = "' + contact.revision + '", birthday = "' + contact.birthday + '", gender = "' + contact.gender + '",' +
+            ' note = "' + contact.note + '", timezone = "' + contact.timezone + '"' +
+            ' where id = ' + contact.id);  
+};
+
+ContactSQLHelper.prototype.updateName = function(contact, mimetype) {
+  return ('UPDATE NAMES SET formatted = "' + contact.name.formatted + '", familyName = "' + contact.name.familyName + '",' +
+            ' givenName = "' + contact.name.givenName + '", middleName = "' + contact.name.middleName + '", honorificPrefix = "' + contact.name.honorificPrefix + '",' +
+            ' honorificSuffix = "' + contact.name.honorificSuffix + '" ' +
+            ' where id = ' + contact.name.id);  
+};
+
+ContactSQLHelper.prototype.updateField = function(field, mimetype) {
+  return ('UPDATE FIELDS SET type = "' + field.type + '", value = "' + field.value + '",' +
+            ' perf = "' + field.pref + '", mimetype = "' + mimetype + '" ' +
+            ' where id = ' + field.id);  
+};
+
+ContactSQLHelper.prototype.updateAddress = function(address) {
+  return ('UPDATE ADDRESSES SET formatted = "' + address.formatted + '", streetAddress = "' + address.streetAddress + '",' +
+            ' locality = "' + address.locality + '", region = "' + address.region + '", postalCode = "' + address.postalCode + '",' +
+            ' country = "' + address.country + '" ' +
+            ' where id = ' + address.id);  
+};
+
+ContactSQLHelper.prototype.updateOrganization = function(org) {
+  return ('UPDATE ORGANIZATIONS SET name = "' + org.name + '", department = "' + org.department + '",' +
+            ' title = "' + org.title + '" ' +
+            ' where id = ' + org.id);  
 };
 
 /**
