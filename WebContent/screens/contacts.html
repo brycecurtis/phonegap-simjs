@@ -110,6 +110,24 @@
         }
 
     };
+
+    function removeContact(){
+        console.log("removeContact for Android:");
+        try{
+            var contact = navigator.service.contacts.create({"displayName": "Bryce User"});
+            contact.id = 1;
+
+            contact.remove(
+                function() { alert("Contact deleted.");},
+                function(e) { alert("Contact deletion failed: " + e); }
+            );
+            console.log("you have removed the contact");
+        }
+        catch (e){
+            alert(e);
+        }
+
+    };
     
     function cleanContacts() {
         var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
@@ -152,6 +170,7 @@
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
             <li dojoType="dojox.mobile.ListItem" onclick="getContacts();">Get Contacts</li>
             <li dojoType="dojox.mobile.ListItem" onclick="addContact();">Add a new Contact</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="removeContact();">Remove Contact</li>
             <li dojoType="dojox.mobile.ListItem" onclick="cleanContacts();">Clean Contact DB</li>
         </ul>
     </div>

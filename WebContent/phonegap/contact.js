@@ -85,7 +85,17 @@ Contact.prototype.remove = function(successCB, errorCB) {
         errorCB(errorObj);
     }
     else {
-        PhoneGap.exec(successCB, errorCB, "Contacts", "remove", [this.id]);
+        var me = this;
+        var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
+        db.transaction(function(tx) {
+            console.log("We are in remove contact");
+            console.log("My id is " + this.id);
+            tx.executeSql('DELETE FROM CONTACTS WHERE id="' + me.id +'"');
+            tx.executeSql('DELETE FROM NAMES WHERE rawid="' + me.id +'"');
+            tx.executeSql('DELETE FROM FIELDS WHERE rawid="' + me.id +'"');
+            tx.executeSql('DELETE FROM ADDRESSES WHERE rawid="' + me.id +'"');
+            tx.executeSql('DELETE FROM ORGANIZATIONS WHERE rawid="' + me.id +'"');
+        });
     }
 };
 
@@ -153,58 +163,68 @@ Contact.prototype.save = function(successCB, errorCB) {
     var saveContact = function(tx) {
         if (me.id == null) {
             tx.executeSql(helper.insertContact(me));
-            // Name
-            if (me.name != null) {
-                tx.executeSql(helper.insertName(me));
-            }
-            // Phone Numbers
-            if (me.phoneNumbers != null) {
-                for (var i=0; i < me.phoneNumbers.length; i++) {
-                    tx.executeSql(helper.insertField(me.phoneNumbers[i], "phone"));                    
+            var newId = null;
+            tx.executeSql("SELECT id FROM CONTACTS", [], function(tx, results) {
+                    var len = results.rows.length, i;
+                    for (i = 0; i < len; i++) {
+                        newId = results.rows.item(i).id;
+                    }
+                    // Name
+                    if (me.name != null) {
+                        tx.executeSql(helper.insertName(newId, me));
+                    }
+                    // Phone Numbers
+                    if (me.phoneNumbers != null) {
+                        for (var i=0; i < me.phoneNumbers.length; i++) {
+                            tx.executeSql(helper.insertField(newId, me.phoneNumbers[i], "phone"));                    
+                        }
+                    }            
+                    // Emails
+                    if (me.emails != null) {
+                        for (var i=0; i < me.emails.length; i++) {
+                            tx.executeSql(helper.insertField(newId, me.emails[i], "email"));                    
+                        }
+                    }            
+                    // IMs
+                    if (me.ims != null) {
+                        for (var i=0; i < me.ims.length; i++) {
+                            tx.executeSql(helper.insertField(newId, me.ims[i], "im"));                    
+                        }
+                    }            
+                    // Photos
+                    if (me.photos != null) {
+                        for (var i=0; i < me.photos.length; i++) {
+                            tx.executeSql(helper.insertField(newId, me.photos[i], "photo"));                    
+                        }
+                    }            
+                    // Categories
+                    if (me.categories != null) {
+                        for (var i=0; i < me.categories.length; i++) {
+                            tx.executeSql(helper.insertField(newId, me.categories[i], "category"));                    
+                        }
+                    }            
+                    // URLs
+                    if (me.urls != null) {
+                        for (var i=0; i < me.urls.length; i++) {
+                            tx.executeSql(helper.insertField(newId, me.urls[i], "url"));                    
+                        }
+                    }            
+                    // Addresses
+                    if (me.addresses != null) {
+                        for (var i=0; i < me.addresses.length; i++) {
+                            tx.executeSql(helper.insertAddress(newId, me.addresses[i]));                    
+                        }
+                    }            
+                    // Organizations
+                    if (me.organizations != null) {
+                        for (var i=0; i < me.organizations.length; i++) {
+                            tx.executeSql(helper.insertOrganization(newId, me.organizations[i]));                    
+                        }
+                    }            
+                }, function() {
+                    console.log("We got an error");
                 }
-            }            
-            // Emails
-            if (me.emails != null) {
-                for (var i=0; i < me.emails.length; i++) {
-                    tx.executeSql(helper.insertField(me.emails[i], "email"));                    
-                }
-            }            
-            // IMs
-            if (me.ims != null) {
-                for (var i=0; i < me.ims.length; i++) {
-                    tx.executeSql(helper.insertField(me.ims[i], "im"));                    
-                }
-            }            
-            // Photos
-            if (me.photos != null) {
-                for (var i=0; i < me.photos.length; i++) {
-                    tx.executeSql(helper.insertField(me.photos[i], "photo"));                    
-                }
-            }            
-            // Categories
-            if (me.categories != null) {
-                for (var i=0; i < me.categories.length; i++) {
-                    tx.executeSql(helper.insertField(me.categories[i], "category"));                    
-                }
-            }            
-            // URLs
-            if (me.urls != null) {
-                for (var i=0; i < me.urls.length; i++) {
-                    tx.executeSql(helper.insertField(me.urls[i], "url"));                    
-                }
-            }            
-            // Addresses
-            if (me.addresses != null) {
-                for (var i=0; i < me.addresses.length; i++) {
-                    tx.executeSql(helper.insertAddress(me.addresses[i]));                    
-                }
-            }            
-            // Organizations
-            if (me.organizations != null) {
-                for (var i=0; i < me.organizations.length; i++) {
-                    tx.executeSql(helper.insertOrganization(me.organizations[i]));                    
-                }
-            }            
+            );
         } else {
             tx.executeSql(helper.updateContact(me));
         }
@@ -390,9 +410,9 @@ ContactSQLHelper.prototype.insertContact = function(contact) {
             '")');  
 };
 
-ContactSQLHelper.prototype.insertName = function(contact, mimetype) {
+ContactSQLHelper.prototype.insertName = function(newId, contact, mimetype) {
   return ('INSERT INTO NAMES (rawId, formatted, familyName, givenName, middleName, honorificPrefix, honorificSuffix) VALUES ("' +
-            '1' +
+            newId +
             '", "' +
             contact.name.formatted +
             '", "' +
@@ -408,9 +428,9 @@ ContactSQLHelper.prototype.insertName = function(contact, mimetype) {
             '")');  
 };
 
-ContactSQLHelper.prototype.insertField = function(field, mimetype) {
+ContactSQLHelper.prototype.insertField = function(newId, field, mimetype) {
   return ('INSERT INTO FIELDS (rawId, type, value, pref, mimetype) VALUES ("' +
-            '1' +
+            newId +
             '", "' +
             field.type +
             '", "' +
@@ -422,9 +442,9 @@ ContactSQLHelper.prototype.insertField = function(field, mimetype) {
             '")');  
 };
 
-ContactSQLHelper.prototype.insertAddress = function(address) {
+ContactSQLHelper.prototype.insertAddress = function(newId, address) {
   return ('INSERT INTO ADDRESSES (rawId, formatted, streetAddress, locality, region, postalCode, country) VALUES ("' +
-            '1' +
+            newId +
             '", "' +
             address.formatted +
             '", "' +
@@ -440,9 +460,9 @@ ContactSQLHelper.prototype.insertAddress = function(address) {
             '")');  
 };
 
-ContactSQLHelper.prototype.insertOrganization = function(org) {
+ContactSQLHelper.prototype.insertOrganization = function(newId, org) {
   return ('INSERT INTO ORGANIZATIONS (rawId, name, department, title) VALUES ("' +
-            '1' +
+            newId +
             '", "' +
             org.name +
             '", "' +
