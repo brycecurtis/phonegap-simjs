@@ -16,6 +16,21 @@ var _pg_sim_loadJavascript = function(jsfile, successCallback) {
     id.appendChild(el);
 };
 
+//Intercept calls to document.addEventListener and watch for deviceready
+var _pg_document_addEventListener = document.addEventListener;
+var _pg_deviceready_listeners = [];
+
+document.addEventListener = function(evt, handler, capture) {
+    var e = evt.toLowerCase();
+    if (e === 'deviceready') {
+        _pg_deviceready_listeners.push(handler);
+    }
+    else {
+        _pg_document_addEventListener.call(document, evt, handler, capture);
+    }
+};
+
+
 // When DOM content is loaded, delay window.onload until all of the PhoneGap JS files are loaded.
 var _pg_sim_window_onload = null;
 document.addEventListener('DOMContentLoaded', function() {
@@ -72,6 +87,11 @@ function _pg_sim_loadjsfiles() {
 		console.log("Calling user's window.onload");
 		if (_pg_sim_window_onload) {
 			_pg_sim_window_onload();
+		}
+		
+		console.log("Calling deviceready listeners not already called");
+		for (var i=0; i<_pg_deviceready_listeners.length; i++) {
+			_pg_deviceready_listeners[i]();
 		}
 	}
 }
