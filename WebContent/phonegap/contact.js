@@ -95,7 +95,7 @@ Contact.prototype.remove = function(successCB, errorCB) {
             tx.executeSql('DELETE FROM FIELDS WHERE rawid="' + me.id +'"');
             tx.executeSql('DELETE FROM ADDRESSES WHERE rawid="' + me.id +'"');
             tx.executeSql('DELETE FROM ORGANIZATIONS WHERE rawid="' + me.id +'"');
-        });
+        }, errorCB, successCB);
     }
 };
 
@@ -244,7 +244,7 @@ Contact.prototype.save = function(successCB, errorCB) {
                         tx.executeSql(helper.updateField(me.phoneNumbers[i], "phone"));
                     }                    
                 }
-            }            
+            }  
             // Emails
             if (me.emails != null) {
                 for (var i=0; i < me.emails.length; i++) {
@@ -314,13 +314,13 @@ Contact.prototype.save = function(successCB, errorCB) {
                         tx.executeSql(helper.updateOrganization(me.organizations[i]));
                     }                    
                 }
-            }            
+            }  
         }
                 
     };
     var me = this;
     var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
-    db.transaction(saveContact);
+    db.transaction(saveContact, errorCB, successCB);
 };
 
 /**
@@ -425,7 +425,191 @@ var Contacts = function() {
 * @return array of Contacts matching search criteria
 */
 Contacts.prototype.find = function(fields, successCB, errorCB, options) {
-    PhoneGap.exec(successCB, errorCB, "Contacts", "search", [fields, options]);
+    var searchDB = function(tx) {
+        tx.executeSql('SELECT * FROM CONTACTS', [], function(tx, results) {
+                    var len = results.rows.length, i;
+                    var contactlist = [];
+                    var cnt = 0;
+                    // Call success callback when all contacts have been added
+                    var success = function() {
+                        console.log("Success has been called");
+                        cnt++;
+                        console.log("Count is = " + cnt);
+                        if (cnt == results.rows.length) {
+                            if (successCB) successCB(contactlist);
+                        }
+                    };
+
+
+                    for (i = 0; i < len; i++) {
+                        var createContactData = function(position) {
+                        
+                            var internalCnt = 0;
+                            // Call success callback when all queries are done
+                            var internalSuccess = function(){
+                                internalCnt++;
+                                console.log("Internal count = " + internalCnt);
+                                if (internalCnt == 4) {
+                                    console.log("I'm pushing the contact now");
+                                    console.log("Pushing " + contactlist[position].displayName);
+                                    //contactlist.push(contactlist[position]);
+                                    console.log("Calling success");
+                                    internalCnt = 0;
+                                    success();
+                                }
+                            };
+                            
+                            
+                            contactlist[position] = new Contact();
+                            contactlist[position].id = results.rows.item(i).id;
+                            contactlist[position].displayName = results.rows.item(i).displayName;
+                            contactlist[position].nickname = results.rows.item(i).nickname;
+                            contactlist[position].revision = results.rows.item(i).revision;
+                            contactlist[position].birthday = results.rows.item(i).birthday;
+                            contactlist[position].gender = results.rows.item(i).gender;
+                            contactlist[position].note = results.rows.item(i).note;
+                            contactlist[position].timezone = results.rows.item(i).timezone;
+                            
+                            var addName = function(tx, results){
+                                console.log("I'm in addName what is i? " + i);
+                                if (results.rows.length == 1) {
+                                    console.log("I got the name");
+                                    var contactName = {};
+                                    contactName.id = results.rows.item(0).id;
+                                    contactName.rawId = contactlist[position].id;
+                                    contactName.formatted = results.rows.item(0).formatted;
+                                    contactName.familyName = results.rows.item(0).familyName;
+                                    contactName.givenName = results.rows.item(0).givenName;
+                                    contactName.middleName = results.rows.item(0).middleName;
+                                    contactName.honorificPrefix = results.rows.item(0).honorificPrefix;
+                                    contactName.honorificSuffix = results.rows.item(0).honorificSuffix;
+                                    contactlist[position].name = contactName;
+                                }
+                                console.log("Name query done");
+                                internalSuccess();
+                            };
+                            
+                            // NAMES
+                            tx.executeSql('SELECT * FROM NAMES WHERE rawId="' + contactlist[position].id + '"', [], addName, function(){
+                                console.log("We got an error searching names");
+                            });
+                            
+                            var addFields = function(tx, results){
+                                var phones = [];
+                                var emails = [];
+                                var ims = [];
+                                var photos = [];
+                                var categories = [];
+                                var urls = [];
+                                var len = results.rows.length, i;
+                                for (i = 0; i < len; i++) {
+                                    console.log("I got an field");
+                                    var contactField = {};
+                                    contactField.id = results.rows.item(i).id;
+                                    contactField.rawId = contactlist[position].id;
+                                    contactField.type = results.rows.item(i).type;
+                                    contactField.value = results.rows.item(i).value;
+                                    contactField.pref = results.rows.item(i).pref;
+                                    var fieldType = results.rows.item(i).mimetype;
+                                    if (fieldType == "phone") {
+                                        phones.push(contactField);
+                                    }
+                                    else 
+                                        if (fieldType == "email") {
+                                            emails.push(contactField);
+                                        }
+                                        else 
+                                            if (fieldType == "photo") {
+                                                photos.push(contactField);
+                                            }
+                                            else 
+                                                if (fieldType == "im") {
+                                                    ims.push(contactField);
+                                                }
+                                                else 
+                                                    if (fieldType == "category") {
+                                                        categories.push(contactField);
+                                                    }
+                                                    else 
+                                                        if (fieldType == "url") {
+                                                            urls.push(contactField);
+                                                        }
+                                }
+                                contactlist[position].phoneNumbers = phones;
+                                contactlist[position].emails = emails;
+                                contactlist[position].ims = ims;
+                                contactlist[position].photos = photos;
+                                contactlist[position].categories = categories;
+                                contactlist[position].urls = urls;
+                                console.log("Field query done");
+                                internalSuccess();
+                            };
+                            
+                            // FIELDS
+                            tx.executeSql('SELECT * FROM FIELDS WHERE rawId="' + contactlist[position].id + '"', [], addFields, function(){
+                                console.log("We got an error searching names");
+                            });
+                            
+                            var addAddresses = function(tx, results){
+                                var addresses = [];
+                                var len = results.rows.length, i;
+                                for (i = 0; i < len; i++) {
+                                    console.log("I got an address");
+                                    var contactAddress = {};
+                                    contactAddress.id = results.rows.item(i).id;
+                                    contactAddress.rawId = contactlist[position].id;
+                                    contactAddress.formatted = results.rows.item(i).formatted;
+                                    contactAddress.streetAddress = results.rows.item(i).streetAddress;
+                                    contactAddress.locality = results.rows.item(i).locality;
+                                    contactAddress.region = results.rows.item(i).region;
+                                    contactAddress.postalCode = results.rows.item(i).postalCode;
+                                    contactAddress.country = results.rows.item(i).country;
+                                    addresses.push(contactAddress);
+                                }
+                                contactlist[position].addresses = addresses;
+                                console.log("Field query done");
+                                internalSuccess();
+                            };
+                            
+                            // ADDRESSES
+                            tx.executeSql('SELECT * FROM ADDRESSES WHERE rawId="' + contactlist[position].id + '"', [], addAddresses, function(){
+                                console.log("We got an error searching names");
+                            });
+                            
+                            var addOrgs = function(tx, results){
+                                var orgs = [];
+                                var len = results.rows.length, i;
+                                for (i = 0; i < len; i++) {
+                                    console.log("I got an org");
+                                    var contactOrg = {};
+                                    contactOrg.id = results.rows.item(i).id;
+                                    contactOrg.rawId = contactlist[position].id;
+                                    contactOrg.name = results.rows.item(i).name;
+                                    contactOrg.department = results.rows.item(i).department;
+                                    contactOrg.title = results.rows.item(i).title;
+                                    orgs.push(contactOrg);
+                                }
+                                contactlist[position].organizations = orgs;
+                                console.log("Org query done");
+                                internalSuccess();
+                            };
+                            
+                            // ORGANIZATIONS
+                            tx.executeSql('SELECT * FROM ORGANIZATIONS WHERE rawId="' + contactlist[position].id + '"', [], addOrgs, function(){
+                                console.log("We got an error searching names");
+                            });
+                        }
+                        createContactData(i);
+                    }
+                }, function() {
+                    console.log("We got an error");
+                }
+            );
+
+    }
+
+    var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
+    db.transaction(searchDB, errorCB);
 };
 
 /**
@@ -576,7 +760,7 @@ ContactSQLHelper.prototype.updateName = function(contact, mimetype) {
 
 ContactSQLHelper.prototype.updateField = function(field, mimetype) {
   return ('UPDATE FIELDS SET type = "' + field.type + '", value = "' + field.value + '",' +
-            ' perf = "' + field.pref + '", mimetype = "' + mimetype + '" ' +
+            ' pref = "' + field.pref + '", mimetype = "' + mimetype + '" ' +
             ' where id = ' + field.id);  
 };
 

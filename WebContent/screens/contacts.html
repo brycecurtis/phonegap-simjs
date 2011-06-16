@@ -38,7 +38,8 @@
                     s = "Number of contacts: "+contacts.length+"<br><table width='100%'><tr><th>Name</th><td>Phone</td><td>Email</td></tr>";
                     for (var i=0; i<contacts.length; i++) {
                         var contact = contacts[i];
-                        s = s + "<tr><td>" + contact.name.formatted + "</td><td>";
+                        s = s + "<tr><td>" + contact.displayName + "</td><td>";
+//                        s = s + "<tr><td>" + contact.name.formatted + "</td><td>";
                         if (contact.phoneNumbers.length > 0) {
                             s = s + contact.phoneNumbers[0].value;
                         }
@@ -47,6 +48,7 @@
                             s = s + contact.emails[0].value;
                         }
                         s = s + "</td></tr>";
+                        
                     }
                     s = s + "</table>";
                 }
@@ -101,7 +103,7 @@
 
             contact.save(
                 function() { alert("Contact saved.");},
-                function(e) { alert("Contact save failed: " + e); }
+                function(e) { alert("Contact save failed: " + e.code); }
             );
             console.log("you have saved the contact");
         }
@@ -130,14 +132,17 @@
 
             var phoneNumbers = [1];
             phoneNumbers[0] = new ContactField('home', '888-555-1234', true);
+            phoneNumbers[0].id = 1;
             contact.phoneNumbers = phoneNumbers;
             
             var org = [1];
             org[0] = new ContactOrganization("Mitel", "Messaging", "Manager");
+            org[0].id = 1;
             contact.organizations = org;
             
             var addresses = [1];
             addresses[0] = new ContactAddress(null, "10 IBM way", "Nepean", "ON", "K2H 5K9", "Canada");
+            addresses[0].id = 1;
             contact.addresses = addresses;
 
             contact.save(
@@ -173,7 +178,7 @@
     function cleanContacts() {
         var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
         db.transaction(function(tx) {
-            console.log("We are in create DB 2");
+            console.log("Dropping Databases");
             tx.executeSql('DELETE FROM CONTACTS');
             tx.executeSql('DELETE FROM NAMES');
             tx.executeSql('DELETE FROM FIELDS');
