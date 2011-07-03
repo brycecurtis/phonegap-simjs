@@ -58,12 +58,13 @@ console.log("PhoneGap is loaded from "+_pg_sim_phonegapDir);
 var _pg_sim_jsfiles = ["phonegap.js.base",
                "accelerometer.js",
                "app.js",
+               "device.js",
                "camera.js",
                "capture.js",
                "compass.js",
                "contact.js",
                "crypto.js",
-               "device.js",
+//               "device.js",
                "file.js",
                "filetransfer.js",
                "geolocation.js",
@@ -150,3 +151,4 @@ parent.iframeWindow = window;
 
 // Send parent frame our document object
 parent.iframeDocument = document;
+console.log("SET parent.iframeWindow");

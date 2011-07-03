@@ -77,7 +77,7 @@ Camera.prototype.getPicture = function(successCallback, errorCallback, options) 
     
     // TODO: different picture for camera & album
     setTimeout(function() {
-    	successCallback(_pg_sim_phonegapDir+"/ibm.jpg");
+    	successCallback(_pg_sim_phonegapDir+"/"+parent.getCameraImage(sourceType));
     }, 1);
 };
 

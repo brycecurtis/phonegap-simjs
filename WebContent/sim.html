@@ -4,18 +4,21 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>PhoneGap Simulator</title>
 <script src="filesim.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" djConfig="parseOnLoad: true"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js" type="text/javascript" djConfig="parseOnLoad: true"></script>
 <script type="text/javascript">
             dojo.require("dijit.layout.ContentPane");
             dojo.require("dijit.layout.BorderContainer");
             dojo.require("dijit.layout.TabContainer");
-            dojo.require("dijit.layout.AccordionContainer");
+            dojo.require("dijit.layout.AccordionContainer"); // problem loading all files so history.back causes sim.html to reload!
             dojo.require("dijit.form.TextBox");
 </script>
-<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css" />
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dijit/themes/claro/claro.css" />
         <style type="text/css">
-            html, body { width: 100%; height: 100%; margin: 0; overflow:hidden; }
+            html, body { width: 100%; height: 100%; margin: 0; overflow:hidden; font-family:Arial; background-color:lightgray;}
             #borderContainerTwo { width: 100%; height: 100%; }
+            .claro .dijitAccordionContainer-dijitContentPane { background-color: lightgray;}
+            .claro .dijitAccordionInnerContainer { background-color: #3388dd;}
+            .claro .dijitAccordionTitle1 { background-color: lightblue;}
         </style>
 
 <script>
@@ -28,6 +31,7 @@ function rand(max) {
 }
 
 dojo.addOnLoad(function() {
+	console.log("dojo.addOnLoad()");
     setDevice();
     nextAccel();
     nextHeading();
@@ -37,17 +41,18 @@ dojo.addOnLoad(function() {
 </script>
 
 </head>
-<body class="claro">
+<body onload="console.log('body LOAD')" class="claro">
 
 <!-- BorderContainer -->
 <div dojoType="dijit.layout.BorderContainer" gutters="true" id="borderContainerTwo" liveSplitters="false">
 
     <!-- Header container -->
-    <div dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size1:larger;">
-       <button dojoType="dijit.form.Button" type=button onClick="iframeBack();" style="float:left;">Prev</button>
-       <span style="font-size:larger">PhoneGap Simulator</span>
-       <button dojoType="dijit.form.Button" type=button onClick="iframeForward();" style="float:right;">Next</button>
-       <script>
+    <div dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size:larger;background-color:lightgray;border:0px solid white;">
+       <!-- button dojoType="dijit.form.Button" type=button onClick="iframeBack();" style="float:left;">< Prev</button -->
+       <span style="font-size:larger;font-weight:bold;color:#333388;">PhoneGap Simulator</span>
+       <!-- button dojoType="dijit.form.Button" type=button onClick="iframeForward();" style="float:right;">Next ></button -->
+       <img src="pg_logo.png" style="float:left;">
+       <!-- script>
             function iframeBack() {
                 if (iframeWindow) {
                     iframeWindow.history.back();
@@ -67,12 +72,12 @@ dojo.addOnLoad(function() {
                 }
             };
 
-       </script>
+       </script -->
     </div>
     <!-- end Header container -->
     
     <!-- AccordionContainer -->
-    <div dojoType="dijit.layout.AccordionContainer" minSize="20" style1="width: 350px;" id="leftAccordion" region="leading" splitter="true">
+    <div dojoType="dijit.layout.AccordionContainer" minSize="20" style="" style1="width: 350px;" id="leftAccordion" region="leading" splitter="true">
     
         <!-- Device -->
         <div dojoType="dijit.layout.AccordionPane" title="Device" selected="true">
@@ -183,10 +188,11 @@ dojo.addOnLoad(function() {
                     
                     // Current values
                     var simulator = dojo.byId("simulator");
+                    var simheader = dojo.byId("simheader");
                     var curWidth = simulator.simWidth;
                     var curHeight = simulator.simHeight;
                     var curOrient = simulator.simOrient;
-                    //console.log("w,h="+width+","+height+"  cur w,h="+curWidth+","+curHeight);
+                    console.log("w,h="+width+","+height+"  cur w,h="+curWidth+","+curHeight);
                     
                     // If orientation changed, then we need to fire event
                     var fireOrient = false;
@@ -202,10 +208,12 @@ dojo.addOnLoad(function() {
                         if (orient === 'p') {
                             simulator.style.width = width+"px";
                             simulator.style.height = height+"px";
+                            simheader.style.width = width+"px";
                         }
                         else {
                             simulator.style.width = height+"px";
                             simulator.style.height = width+"px";
+                            simheader.style.width = height+"px";
                         }
                         saveDevice();
                     }
@@ -267,9 +275,94 @@ dojo.addOnLoad(function() {
         <!-- end Accelerometer -->
         
         <div dojoType="dijit.layout.AccordionPane" title="Camera">
+            <table dtyle="cellspacing:10;">
+                <tr><td colspan="2">Choose an image to use for camera:</td></tr>
+                <tr>
+                    <td><img src="phonegap/camera/camera1_xs.jpg" height="50px;"></td>
+                    <td>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera1_xs.jpg');">XS</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera1_s.jpg');">S</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera1_m.jpg');">M</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera1_l.jpg');">L</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera1_xl.jpg');">XL</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><img src="phonegap/camera/camera2_xs.jpg" height="50px;"></td>
+                    <td>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera2_xs.jpg');">XS</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera2_s.jpg');">S</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera2_m.jpg');">M</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera2_l.jpg');">L</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setCameraImage('camera2_xl.jpg');">XL</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Currently selected image for camera:</td>
+                </tr>
+                <tr>
+                    <td><img id="cameraSelectedId" src="" height="50px"></td><td><span id="cameraSizeId"></span></td>
+                </tr>
+            </table>
+            <div style="height:5px;border-bottom:1px solid blue;width:100%;padding-top:5px;padding-bottom:5px;"></div>
+            <table dtyle="cellspacing:10;">
+                <tr><td colspan="2">Choose an image to use for album:</td></tr>
+                <tr>
+                    <td><img src="phonegap/camera/album1_xs.jpg" height="50px;"></td>
+                    <td>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album1_xs.jpg');">XS</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album1_s.jpg');">S</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album1_m.jpg');">M</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album1_l.jpg');">L</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album1_xl.jpg');">XL</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><img src="phonegap/camera/album2_xs.jpg" height="50px;"></td>
+                    <td>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album2_xs.jpg');">XS</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album2_s.jpg');">S</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album2_m.jpg');">M</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album2_l.jpg');">L</button>
+                    <button dojoType="dijit.form.Button" type=button onClick="setAlbumImage('album2_xl.jpg');">XL</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Currently selected image for album:</td>
+                </tr>
+                <tr>
+                    <td><img id="albumSelectedId" src="" height="50px"></td><td><span id="albumSizeId"></span></td>
+                </tr>
+            </table>
+            <script>
+            var curCameraImage = "";
+            function setCameraImage(image) {
+            	curCameraImage = "camera/" + image;
+            	document.getElementById("cameraSelectedId").src = "phonegap/"+curCameraImage;
+                document.getElementById("cameraSizeId").innerHTML = image;
+            }
+            var curAlbumImage = "";
+            function setAlbumImage(image) {
+                curAlbumImage = "camera/" + image;
+                document.getElementById("albumSelectedId").src = "phonegap/"+curAlbumImage;
+                document.getElementById("albumSizeId").innerHTML = image;
+            }
+            function getCameraImage(source) {
+            	console.log("camera image="+curCameraImage);
+            	if (source == 1) {
+            	    return curCameraImage;
+            	}
+            	else {
+            		return curAlbumImage;
+            	}
+            }
+            setCameraImage("camera1_m.jpg");
+            setAlbumImage("album1_m.jpg");
+            </script>
         </div>
         
         <div dojoType="dijit.layout.AccordionPane" title="Capture">
+            Not implemented.
         </div>
         
         <!-- Compass -->
@@ -298,6 +391,7 @@ dojo.addOnLoad(function() {
 
         <!-- File -->
         <div dojoType="dijit.layout.AccordionPane" title="File">
+            Need file explorer view
         </div>
         <!-- end File -->
 
@@ -365,6 +459,7 @@ dojo.addOnLoad(function() {
         <!-- end Geolocation -->
         
         <div dojoType="dijit.layout.AccordionPane" title="Media">
+            Not implemented
         </div>
         
         <!-- Network -->
@@ -396,7 +491,36 @@ dojo.addOnLoad(function() {
     <!-- end AccordionContainer -->
     
     <!-- Simulator container -->
-    <div dojoType="dijit.layout.ContentPane" region="center" tabStrip="true">
+    <div dojoType="dijit.layout.ContentPane" region="center" tabStrip="true" style="background-color:lightgray;">
+        <!-- Header container -->
+    <div id="simheader" dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size1:larger;background-color:lightgray;">
+       <button dojoType="dijit.form.Button" type=button onClick="iframeBack();" style="float:left;">< Prev</button>
+       <span style="font-size:larger;">Device</span>
+       <button dojoType="dijit.form.Button" type=button onClick="iframeForward();" style="float:right;">Next ></button>
+       <script>
+            function iframeBack() {
+                if (iframeWindow) {
+                    iframeWindow.history.back();
+                }
+            }
+            function iframeForward() {
+                if (iframeWindow) {
+                    iframeWindow.history.forward();
+                }
+            }
+            function fireEvent(type) {
+                console.log("fireEvent("+type+")");
+                if (iframeDocument) {
+                    var e = iframeDocument.createEvent('Events');
+                    e.initEvent(type);
+                    iframeDocument.dispatchEvent(e);
+                }
+            };
+
+       </script>
+    </div>
+    <!-- end Header container -->
+    
         <iframe id="simulator" style="width1:480px;height1:800px;visibility:hidden;" src="index.html"></iframe>
     </div>
     <!-- end Simulator container -->
