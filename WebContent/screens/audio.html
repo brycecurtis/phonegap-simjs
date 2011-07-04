@@ -30,6 +30,7 @@
     var media1 = null;
     var media1Timer = null;
     var audioSrc = null;
+    var mediaError = false;
 
     /**
      * Play audio
@@ -39,10 +40,11 @@
         console.log(" -- media="+media1);
 
         //var src = "http://neuga.s3.amazonaws.com/onclassical/strings-organ.mp3";
- //       var src = "http://audio.ibeat.org/content/p1rj1s/p1rj1s_-_rockGuitar.mp3";
+        //var src = "http://audio.ibeat.org/content/p1rj1s/p1rj1s_-_rockGuitar.mp3";
         //var src = "/android_asset/www/Jet_Sledding.mp4"; // no work
         //var src = "http://vprbbc.streamguys.net/vprbbc24.mp3"; // mp3 streaming
-        var src = "/Users/bcurtis/mobile/mobile/PhoneGap/PhoneGap/Android/train.wav";
+        //var src = "/Users/bcurtis/mobile/mobile/PhoneGap/PhoneGap/Android/train.wav";
+        var src = "http://www.danosongs.com/music/danosongs.com-artofgardens-intsr.mp3";
         
         if (url) {
             src = url;
@@ -71,10 +73,12 @@
             media1 = new Media(src,
                 function() {
                     console.log("playAudio():Audio Success");
+                    //playit();
                 },
                 function(err) {
                     console.log("playAudio():Audio Error: "+err);
                     setAudioStatus("Error: " + err);
+                    mediaError = err;
                 },
                 function(status) {
                     console.log("playAudio():Audio Status: "+status);
@@ -89,16 +93,22 @@
         }
         audioSrc = src;
 
+    //function playit() {
         // Play audio
         media1.play();
         if (media1Timer == null) {
             media1Timer = setInterval(
                 function() {
+                    if (mediaError) {
+                        clearInterval(media1Timer);
+                        media1Timer = null;
+                        return;
+                    }
                     media1.getCurrentPosition(
                         function(position) {
                             console.log("Pos="+position);
                             if (position > -1) {
-                                setAudioPosition((position/1000)+" sec");
+                                setAudioPosition(position+" sec");
                             }
                         },
                         function(e) {
@@ -115,6 +125,11 @@
         var counter = 0;
         var timerDur = setInterval(
             function() {
+                if (mediaError) {
+                    clearInterval(timerDur);
+                    timerDur = null;
+                    return;
+                }
                 counter = counter + 100;
                 if (counter > 5000) {
                     clearInterval(timerDur);
@@ -122,10 +137,11 @@
                 var dur = media1.getDuration();
                 if (dur > 0) {
                     clearInterval(timerDur);
-                    document.getElementById('audio_duration').innerHTML = (dur/1000) + " sec";
+                    document.getElementById('audio_duration').innerHTML = dur + " sec";
                 }
             }, 100);
     }
+    //}
 
     /**
      * Pause audio playback

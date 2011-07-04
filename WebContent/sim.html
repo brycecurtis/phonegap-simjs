@@ -33,6 +33,13 @@ function rand(max) {
     return Math.random()*max;
 }
 
+function roundNumber(num) {
+    var dec = 3;
+    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+    return result;
+}
+
+
 dojo.addOnLoad(function() {
 	console.log("dojo.addOnLoad()");
     setDevice();
@@ -521,7 +528,189 @@ dojo.addOnLoad(function() {
         <!-- end Geolocation -->
         
         <div dojoType="dijit.layout.AccordionPane" title="Media">
-            Not implemented
+            URL:<span id="audioUrl"></span>
+            <br><hr><br>
+            Audio Playback:<br>
+            Length:<span id="audioDuration"></span><br>
+            <div id="audioInfo"></div>
+            <audio id="audio"
+                src="" controls="controls">
+            </audio>
+            <br><hr><br>
+            Audio Recording:<br>
+            <div id="audioRecording">Idle</div>
+
+            <script>
+            Media = {};
+            Media.MEDIA_STATE = 1;
+            Media.MEDIA_DURATION = 2;
+            Media.MEDIA_ERROR = 9;
+            
+            // Media states 
+            Media.MEDIA_NONE = 0;
+            Media.MEDIA_STARTING = 1;
+            Media.MEDIA_RUNNING = 2;
+            Media.MEDIA_PAUSED = 3;
+            Media.MEDIA_STOPPED = 4;
+            
+            var audioTag = dojo.byId("audio");
+            var audioUrlCurrent = null;             // current url to play 
+            var audioUrlId = null;                  // current media id playing 
+            var audioCallback = null;               // callback to app 
+            var audioState = Media.MEDIA_NONE;      // current audio state 
+            var audioInterval = null;               // current duration interval
+            var audioPlayRecord = true;             // T=play, F=record 
+
+            /**
+             * Set mode, so we don't send error when file to be recorded can't be loaded.
+             *
+             * @param T=play, F=record
+             */
+            function audioMode(play) {
+            	audioPlayRecord = play;
+            }
+            
+            /**
+             * Init audio for playing url
+             *
+             * @param callback          The media status callback to the app
+             * @param id                The media player id for the app
+             * @param url               The url to play
+             */
+            function audioUrl(callback, id, url) {
+            	 
+            	// If url already loaded, then just return 
+            	//if (audioUrlCurrent == url) {
+            	//	return;
+            	//}
+            	
+            	// Set parameters 
+            	audioUrlCurrent = url;
+            	audioUrlId = id;
+            	audioCallback = callback;
+            	audioTag.setAttribute('src', url);
+            	dojo.byId("audioUrl").innerHTML = url;
+            	
+            	// Load audio url
+            	if (!audioPlayRecord) {
+            		return;
+            	}
+            	audioTag.load();
+            	
+            	// Set up listeners 
+            	audioTag.addEventListener("load", function() {
+            	   dojo.byId("audioDuration").innerHTML = roundNumber(audioTag.duration);
+            	   if (audioCallback) {
+            		  audioCallback(audioUrlId, Media.MEDIA_DURATION, roundNumber(audioTag.duration));
+            	   }
+            	}, true);
+            	
+                audioTag.addEventListener("pause", function(e) {
+                    console.log("pause");
+                }, true);
+                
+                audioTag.addEventListener("play", function(e) {
+                    console.log("play");
+                    sendMediaState(Media.MEDIA_RUNNING);
+                }, true);
+                
+            	audioTag.addEventListener("ended", function(e) {
+            		console.log("ended");
+            		sendMediaState(Media.MEDIA_STOPPED);
+            	}, true);
+
+                audioTag.addEventListener("error", function(e) {
+                    console.log("error");
+                    if (audioCallback) {
+                        audioCallback(audioUrlId, Media.MEDIA_ERROR, "Error");
+                    }
+                }, true);
+
+             }
+            
+            /**
+             * Play audio
+             */
+            function audioPlay() {
+            	audioTag.play();
+                sendMediaState(Media.MEDIA_RUNNING);
+            }
+            
+            /**
+             * Pause audio
+             */
+            function audioPause() {
+            	audioTag.pause();
+                sendMediaState(Media.MEDIA_PAUSED);
+            }
+            
+            /**
+             * Stop audio
+             */
+            function audioStop() {
+            	audioTag.pause();
+                sendMediaState(Media.MEDIA_STOPPED);
+            }
+            
+            /**
+             * Seek audio
+             *
+             * @param time
+             */
+            function audioSeek(time) {
+                audioTag.currentTime=time;
+                audioTag.play();
+            }
+            
+            /**
+             * Get audio duration
+             *
+             * @return
+             */
+            function audioDuration() {
+            	return roundNumber(audioTag.duration);
+            }
+            
+            /**
+             * Get audio current position
+             *
+             * @return
+             */
+            function audioCurrentPosition() {
+            	return roundNumber(audioTag.currentTime);
+            }
+            
+            /**
+             * Send media state back to app
+             *
+             * @param state
+             */
+            function sendMediaState(state) {
+            	if (audioState != state) {
+            		audioState = state;
+            		/*
+            		if (state == Media.MEDIA_RUNNING) {
+            			audioInterval = setInterval(function() {
+            				audioCallback(audioUrlId, Media.MEDIA_DURATION, audioTag.duration);
+            			}, 1000);
+            		}*/
+            		if (audioCallback) {
+            		    audioCallback(audioUrlId, Media.MEDIA_STATE, audioState);
+            		}
+            	}
+            }
+            
+            function audioRecordStart() {
+            	dojo.byId("audioRecording").innerHTML = "Recording " + audioUrlCurrent;
+            }
+            
+            function audioRecordStop() {
+                dojo.byId("audioRecording").innerHTML = "Idle";            	
+            }
+            
+            // Sample audio file 
+            //audioUrl("phonegap/audio/train.mp3");
+            </script>
         </div>
         
         <!-- Network -->

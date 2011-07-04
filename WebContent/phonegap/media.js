@@ -157,7 +157,9 @@ MediaError.MEDIA_ERR_NONE_SUPPORTED = 4;
  */
 Media.prototype.play = function() {
     console.log("Media.play() - src="+this.src+" id="+this.id);
-    PhoneGap.exec(null, null, "Media", "startPlayingAudio", [this.id, this.src]);
+    parent.audioMode(true);
+    parent.audioUrl(PhoneGap.Media.onStatus, this.id, this.src);
+    parent.audioPlay();
 };
 
 /**
@@ -165,14 +167,14 @@ Media.prototype.play = function() {
  */
 Media.prototype.stop = function() {
     console.log("Media.stop() - src="+this.src+" id="+this.id);
-    return PhoneGap.exec(null, null, "Media", "stopPlayingAudio", [this.id]);
+    parent.audioStop();
 };
 
 /**
  * Seek or jump to a new time in the track..
  */
 Media.prototype.seekTo = function(milliseconds) {
-    PhoneGap.exec(null, null, "Media", "seekToAudio", [this.id, milliseconds]);
+	parent.audioSeek(milliseconds);
 };
 
 /**
@@ -180,7 +182,7 @@ Media.prototype.seekTo = function(milliseconds) {
  */
 Media.prototype.pause = function() {
     console.log("Media.pause() - src="+this.src+" id="+this.id);
-    PhoneGap.exec(null, null, "Media", "pausePlayingAudio", [this.id]);
+    parent.audioPause();
 };
 
 /**
@@ -191,11 +193,7 @@ Media.prototype.pause = function() {
  */
 Media.prototype.getDuration = function() {
     console.log("Media.getDuration() - src="+this.src+" id="+this.id);
-    // Get duration if not set
-    //if (this._duration < 0) {
-    //    this._duration = Media.getDurationAudio(this.id, this.src);
-    //}
-    return this._duration;
+    return parent.audioDuration();
 };
 
 /**
@@ -203,7 +201,9 @@ Media.prototype.getDuration = function() {
  */
 Media.prototype.getCurrentPosition = function(success, fail) {
     console.log("Media.getCurrentPosition()");
-    PhoneGap.exec(success, fail, "Media", "getCurrentPositionAudio", [this.id]);
+    //PhoneGap.exec(success, fail, "Media", "getCurrentPositionAudio", [this.id]);
+    var pos = parent.audioCurrentPosition();
+    success(pos);
 };
 
 /**
@@ -211,7 +211,9 @@ Media.prototype.getCurrentPosition = function(success, fail) {
  */
 Media.prototype.startRecord = function() {
     console.log("Media.startRecord() - src="+this.src+" id="+this.id);
-    PhoneGap.exec(null, null, "Media", "startRecordingAudio", [this.id, this.src]);
+    parent.audioMode(false);
+    parent.audioUrl(PhoneGap.Media.onStatus, this.id, this.src);
+    parent.audioRecordStart();
 };
 
 /**
@@ -219,14 +221,13 @@ Media.prototype.startRecord = function() {
  */
 Media.prototype.stopRecord = function() {
     console.log("Media.stopRecord() - src="+this.src+" id="+this.id);
-    PhoneGap.exec(null, null, "Media", "stopRecordingAudio", [this.id]);
+    parent.audioRecordStop();
 };
 
 /**
  * Release the resources.
  */
 Media.prototype.release = function() {
-    PhoneGap.exec(null, null, "Media", "release", [this.id]);
 };
 }());
 };
