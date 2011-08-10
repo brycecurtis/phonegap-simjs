@@ -12,10 +12,10 @@ dumpObj = function(obj, name, indent, depth) {
         return indent + name + ": <Maximum Depth Reached>\n";
     }
     if (typeof obj == "object") {
-        var child = null;
+        //var child = null;
         var output = indent + name + "\n";
         indent += "\t";
-        var item;
+        var item = null;
         for (item in obj) {
             var child = '';
             try {
@@ -43,7 +43,7 @@ dumpObj = function(obj, name, indent, depth) {
  */
 var filedb = function() {
 	this.db = null;
-}
+};
 
 // Errors
 filedb.prototype.ERROR_READ = 1;

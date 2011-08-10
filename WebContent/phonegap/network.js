@@ -3,69 +3,30 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010-2011, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("network")) {
 PhoneGap.addResource("network");
 
 /**
- * This class contains information about any NetworkStatus.
- * @constructor
- */
-NetworkStatus = function() {
-};
-
-NetworkStatus.NOT_REACHABLE = 0;
-NetworkStatus.REACHABLE_VIA_CARRIER_DATA_NETWORK = 1;
-NetworkStatus.REACHABLE_VIA_WIFI_NETWORK = 2;
-
-/**
- * This class provides access to device Network data (reachability).
- * @constructor
- */
-Network = function() {
-};
-
-
-/**
- * Determine if a URI is reachable over the network.
-
- * @param {Object} uri
- * @param {Function} callback
- * @param {Object} options  (isIpAddress:boolean)
- */
-Network.prototype.isReachable = function(uri, callback, options) {
-    var isIpAddress = false;
-    if (options && options.isIpAddress) {
-        isIpAddress = options.isIpAddress;
-    }
-    setTimeout(function() {
-    	callback(navigator.network.getNext());
-    }, 1);
-};
-
-/**
  * This class contains information about the current network Connection.
  * @constructor
  */
 Connection = function() {
-	console.log("network.js: Connection()");
     this.type = null;
-    this.networkName = null;
     this._firstRun = true;
     this._timer = null;
     this.timeout = 500;
 
     var me = this;
     this.getInfo(
-        function(info) {
+        function(type) {
             // Need to send events if we are on or offline
-            if (info.type == "none") {
+            if (type == "none") {
                 // set a timer if still offline at the end of timer send the offline event
                 me._timer = setTimeout(function(){
-                    me.type = info.type;
-                    me.networkName = info.networkName;
+                    me.type = type;
                     PhoneGap.fireEvent('offline');
                     me._timer = null;
                     }, me.timeout);
@@ -75,8 +36,7 @@ Connection = function() {
                     clearTimeout(me._timer);
                     me._timer = null;
                 }
-                me.type = info.type;
-                me.networkName = info.networkName;
+                me.type = type;
                 PhoneGap.fireEvent('online');
             }
             
@@ -110,22 +70,16 @@ Connection.prototype.getInfo = function(successCallback, errorCallback) {
     PhoneGap.exec(successCallback, errorCallback, "Network Status", "getConnectionInfo", []);
 };
 
+
 PhoneGap.addConstructor(function() {
 	console.log("Adding network="+navigator.network);
     if (typeof navigator.network === "undefined") {
-        navigator.network = new Network();
+        navigator.network = new Object();
     }
     if (typeof navigator.network.connection === "undefined") {
         navigator.network.connection = new Connection();
         console.log(" -- connection now ="+navigator.network.connection);
     }
 });
-
-/**
- * Simulate network connection
- */
-Network.prototype.getNext = function() {
-	return parent.getNetwork();
-};
 
 };

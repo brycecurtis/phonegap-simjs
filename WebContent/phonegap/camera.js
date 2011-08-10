@@ -3,18 +3,19 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010-2011, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("camera")) {
 PhoneGap.addResource("camera");
+(function() {
 
 /**
  * This class provides access to the device camera.
  *
  * @constructor
  */
-Camera = function() {
+var Camera = function() {
     this.successCallback = null;
     this.errorCallback = null;
     this.options = null;
@@ -33,6 +34,21 @@ Camera.DestinationType = {
     FILE_URI: 1                 // Return file uri (content://media/external/images/media/2 for Android)
 };
 Camera.prototype.DestinationType = Camera.DestinationType;
+
+/**
+ * Encoding of image returned from getPicture.
+ *
+ * Example: navigator.camera.getPicture(success, fail,
+ *              { quality: 80,
+ *                destinationType: Camera.DestinationType.DATA_URL,
+ *                sourceType: Camera.PictureSourceType.CAMERA,
+ *                encodingType: Camera.EncodingType.PNG})
+*/
+Camera.EncodingType = {
+    JPEG: 0,                    // Return JPEG encoded image
+    PNG: 1                      // Return PNG encoded image
+};
+Camera.prototype.EncodingType = Camera.EncodingType;
 
 /**
  * Source to getPicture from.
@@ -61,11 +77,29 @@ Camera.prototype.PictureSourceType = Camera.PictureSourceType;
  */
 Camera.prototype.getPicture = function(successCallback, errorCallback, options) {
 
+    // successCallback required
+    if (typeof successCallback !== "function") {
+        console.log("Camera Error: successCallback is not a function");
+        return;
+    }
+
+    // errorCallback optional
+    if (errorCallback && (typeof errorCallback !== "function")) {
+        console.log("Camera Error: errorCallback is not a function");
+        return;
+    }
+
     this.options = options;
     var quality = 80;
     if (options.quality) {
         quality = this.options.quality;
     }
+    
+    var maxResolution = 0;
+    if (options.maxResolution) {
+    	maxResolution = this.options.maxResolution;
+    }
+    
     var destinationType = Camera.DestinationType.DATA_URL;
     if (this.options.destinationType) {
         destinationType = this.options.destinationType;
@@ -74,11 +108,32 @@ Camera.prototype.getPicture = function(successCallback, errorCallback, options) 
     if (typeof this.options.sourceType === "number") {
         sourceType = this.options.sourceType;
     }
+    var encodingType = Camera.EncodingType.JPEG;
+    if (typeof options.encodingType == "number") {
+        encodingType = this.options.encodingType;
+    }
     
-    // TODO: different picture for camera & album
-    setTimeout(function() {
-    	successCallback(_pg_sim_phonegapDir+"/"+parent.getCameraImage(sourceType));
-    }, 1);
+    var targetWidth = -1;
+    if (typeof options.targetWidth == "number") {
+        targetWidth = options.targetWidth;
+    } else if (typeof options.targetWidth == "string") {
+        var width = new Number(options.targetWidth);
+        if (isNaN(width) === false) {
+            targetWidth = width.valueOf();
+        }
+    }
+
+    var targetHeight = -1;
+    if (typeof options.targetHeight == "number") {
+        targetHeight = options.targetHeight;
+    } else if (typeof options.targetHeight == "string") {
+        var height = new Number(options.targetHeight);
+        if (isNaN(height) === false) {
+            targetHeight = height.valueOf();
+        }
+    }
+    
+    PhoneGap.exec(successCallback, errorCallback, "Camera", "takePicture", [quality, destinationType, sourceType, targetWidth, targetHeight, encodingType]);
 };
 
 PhoneGap.addConstructor(function() {
@@ -86,4 +141,5 @@ PhoneGap.addConstructor(function() {
         navigator.camera = new Camera();
     }
 });
-};
+}());
+}

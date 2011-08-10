@@ -147,8 +147,29 @@ function hidePopUp() {
 _pg_sim_div = null;
 
 // Send parent frame our window object
-parent.iframeWindow = window;
+//parent.iframeWindow = window;
 
 // Send parent frame our document object
-parent.iframeDocument = document;
+//parent.iframeDocument = document;
 console.log("SET parent.iframeWindow");
+
+//parent.postMessage("This is my message from child", "*");
+/*
+window.addEventListener("message", function(e){
+    console.log("*****PG BC***** "+e.domain + " said: " + e.data);
+    eval("var t="+e.data);
+    console.log("id="+t.id+" data="+t.data);
+    var callback = _pg_sim_postMessageList[t.id];
+    delete _pg_sim_postMessageList[t.id];
+    callback(t.data);
+}, false);
+
+_pg_sim_postMessageList = {};
+_pg_sim_postMessageId = 0;
+function _pg_sim_postMessage(method, parms, callback) {
+	var id = _pg_sim_postMessageId++;
+	_pg_sim_postMessageList[id] = callback;
+	var data = {id:id, method:method, parms:parms};
+	parent.postMessage(JSON.stringify(data), "*");
+}
+*/

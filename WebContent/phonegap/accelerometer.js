@@ -3,12 +3,14 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010-2011, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("accelerometer")) {
 PhoneGap.addResource("accelerometer");
+(function() {
 
+/** @constructor */
 Acceleration = function(x, y, z) {
   this.x = x;
   this.y = y;
@@ -20,7 +22,7 @@ Acceleration = function(x, y, z) {
  * This class provides access to device accelerometer data.
  * @constructor
  */
-Accelerometer = function() {
+var Accelerometer = function() {
 
     /**
      * The last known acceleration.  type=Acceleration()
@@ -44,10 +46,20 @@ Accelerometer.ERROR_MSG = ["Not running", "Starting", "", "Failed to start"];
  */
 Accelerometer.prototype.getCurrentAcceleration = function(successCallback, errorCallback, options) {
 
+    // successCallback required
+    if (typeof successCallback !== "function") {
+        console.log("Accelerometer Error: successCallback is not a function");
+        return;
+    }
+
+    // errorCallback optional
+    if (errorCallback && (typeof errorCallback !== "function")) {
+        console.log("Accelerometer Error: errorCallback is not a function");
+        return;
+    }
+
     // Get acceleration
-	setTimeout(function() {
-		successCallback(navigator.accelerometer.getNext());
-	}, 1);
+    PhoneGap.exec(successCallback, errorCallback, "Accelerometer", "getAcceleration", []);
 };
 
 /**
@@ -63,11 +75,32 @@ Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallb
     // Default interval (10 sec)
     var frequency = (options !== undefined)? options.frequency : 10000;
 
+    // successCallback required
+    if (typeof successCallback !== "function") {
+        console.log("Accelerometer Error: successCallback is not a function");
+        return;
+    }
+
+    // errorCallback optional
+    if (errorCallback && (typeof errorCallback !== "function")) {
+        console.log("Accelerometer Error: errorCallback is not a function");
+        return;
+    }
+
+    // Make sure accelerometer timeout > frequency + 10 sec
+    PhoneGap.exec(
+        function(timeout) {
+            if (timeout < (frequency + 10000)) {
+                PhoneGap.exec(null, null, "Accelerometer", "setTimeout", [frequency + 10000]);
+            }
+        },
+        function(e) { }, "Accelerometer", "getTimeout", []);
+
     // Start watch timer
     var id = PhoneGap.createUUID();
     navigator.accelerometer.timers[id] = setInterval(function() {
-    	successCallback(navigator.accelerometer.getNext());
-    }, frequency);
+        PhoneGap.exec(successCallback, errorCallback, "Accelerometer", "getAcceleration", []);
+    }, (frequency ? frequency : 1));
 
     return id;
 };
@@ -91,13 +124,5 @@ PhoneGap.addConstructor(function() {
         navigator.accelerometer = new Accelerometer();
     }
 });
-
-/**
- * Simulate acceleration
- */
-Accelerometer.prototype.getNext = function() {
-	//return new Acceleration(rand(10),rand(10),rand(10));
-	return parent.getAccel();
-};
-
-};
+}());
+}

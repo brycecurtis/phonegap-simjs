@@ -3,74 +3,13 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010-2011, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("media")) {
 PhoneGap.addResource("media");
 (function() {
 
-/**
- * List of media objects.
- * PRIVATE
- */
-PhoneGap.mediaObjects = {};
-
-/**
- * Object that receives native callbacks.
- * PRIVATE
- * @constructor
- */
-PhoneGap.Media = function() {};
-
-/**
- * Get the media object.
- * PRIVATE
- *
- * @param id            The media object id (string)
- */
-PhoneGap.Media.getMediaObject = function(id) {
-    return PhoneGap.mediaObjects[id];
-};
-
-/**
- * Audio has status update.
- * PRIVATE
- *
- * @param id            The media object id (string)
- * @param status        The status code (int)
- * @param msg           The status message (string)
- */
-PhoneGap.Media.onStatus = function(id, msg, value) {
-    var media = PhoneGap.mediaObjects[id];
-    console.log("Media.onStatus("+msg+", "+value+")");
-
-    // If state update
-    if (msg === Media.MEDIA_STATE) {
-        if (value === Media.MEDIA_STOPPED) {
-            if (media.successCallback) {
-                media.successCallback();
-            }
-        }
-        if (media.statusCallback) {
-            media.statusCallback(value);
-        }
-    }
-    else if (msg === Media.MEDIA_DURATION) {
-        media._duration = value;
-    }
-    //else if (msg == Media.MEDIA_POSITION) {
-    //    media._position = value;
-    //    if (media.positionCallback) {
-    //        media.positionCallback(value);
-    //    }
-    //}
-    else if (msg === Media.MEDIA_ERROR) {
-        if (media.errorCallback) {
-            media.errorCallback(value);
-        }
-    }
-};
 
 /**
  * This class provides access to the device media, interfaces to both sound and video
@@ -127,6 +66,7 @@ Media = function(src, successCallback, errorCallback, statusCallback, positionCa
 // Media messages
 Media.MEDIA_STATE = 1;
 Media.MEDIA_DURATION = 2;
+Media.MEDIA_POSITION = 3;
 Media.MEDIA_ERROR = 9;
 
 // Media states
@@ -156,33 +96,28 @@ MediaError.MEDIA_ERR_NONE_SUPPORTED = 4;
  * Start or resume playing audio file.
  */
 Media.prototype.play = function() {
-    console.log("Media.play() - src="+this.src+" id="+this.id);
-    parent.audioMode(true);
-    parent.audioUrl(PhoneGap.Media.onStatus, this.id, this.src);
-    parent.audioPlay();
+    PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "startPlayingAudio", [this.id, this.src]);
 };
 
 /**
  * Stop playing audio file.
  */
 Media.prototype.stop = function() {
-    console.log("Media.stop() - src="+this.src+" id="+this.id);
-    parent.audioStop();
+    return PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "stopPlayingAudio", [this.id]);
 };
 
 /**
  * Seek or jump to a new time in the track..
  */
 Media.prototype.seekTo = function(milliseconds) {
-	parent.audioSeek(milliseconds);
+    PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "seekToAudio", [this.id, milliseconds]);
 };
 
 /**
  * Pause playing audio file.
  */
 Media.prototype.pause = function() {
-    console.log("Media.pause() - src="+this.src+" id="+this.id);
-    parent.audioPause();
+    PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "pausePlayingAudio", [this.id]);
 };
 
 /**
@@ -193,7 +128,7 @@ Media.prototype.pause = function() {
  */
 Media.prototype.getDuration = function() {
     console.log("Media.getDuration() - src="+this.src+" id="+this.id);
-    return parent.audioDuration();
+    return this._duration;
 };
 
 /**
@@ -201,9 +136,7 @@ Media.prototype.getDuration = function() {
  */
 Media.prototype.getCurrentPosition = function(success, fail) {
     console.log("Media.getCurrentPosition()");
-    //PhoneGap.exec(success, fail, "Media", "getCurrentPositionAudio", [this.id]);
-    var pos = parent.audioCurrentPosition();
-    success(pos);
+    PhoneGap.exec(success, fail, "Media", "getCurrentPositionAudio", [this.id]);
 };
 
 /**
@@ -211,9 +144,8 @@ Media.prototype.getCurrentPosition = function(success, fail) {
  */
 Media.prototype.startRecord = function() {
     console.log("Media.startRecord() - src="+this.src+" id="+this.id);
-    parent.audioMode(false);
-    parent.audioUrl(PhoneGap.Media.onStatus, this.id, this.src);
-    parent.audioRecordStart();
+    alert("Recording not supported yet.");
+    //PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "startRecordingAudio", [this.id, this.src]);
 };
 
 /**
@@ -221,13 +153,75 @@ Media.prototype.startRecord = function() {
  */
 Media.prototype.stopRecord = function() {
     console.log("Media.stopRecord() - src="+this.src+" id="+this.id);
-    parent.audioRecordStop();
+    alert("Recording not supported yet.");
+    PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "stopRecordingAudio", [this.id]);
 };
 
 /**
  * Release the resources.
  */
 Media.prototype.release = function() {
+    PhoneGap.exec(PhoneGap.Media.onStatus, PhoneGap.Media.onStatus, "Media", "release", [this.id]);
 };
+
+/**
+ * List of media objects.
+ * PRIVATE
+ */
+PhoneGap.mediaObjects = {};
+
+/**
+ * Object that receives native callbacks.
+ * PRIVATE
+ * @constructor
+ */
+PhoneGap.Media = function() {};
+
+/**
+ * Get the media object.
+ * PRIVATE
+ *
+ * @param id            The media object id (string)
+ */
+PhoneGap.Media.getMediaObject = function(id) {
+    return PhoneGap.mediaObjects[id];
+};
+
+/**
+ * Audio has status update.
+ * PRIVATE
+ *
+ * @param id            The media object id (string)
+ * @param status        The status code (int)
+ * @param msg           The status message (string)
+ */
+PhoneGap.Media.onStatus = function(data) { //id, msg, value) {
+    var media = PhoneGap.mediaObjects[data.id];
+    console.log("Media.onStatus("+data.msg+", "+data.value+")");
+
+    // If state update
+    if (data.msg === Media.MEDIA_STATE) {
+        if (data.value === Media.MEDIA_STOPPED) {
+            if (media.successCallback) {
+                media.successCallback();
+            }
+        }
+        if (media.statusCallback) {
+            media.statusCallback(data.value);
+        }
+    }
+    else if (data.msg === Media.MEDIA_DURATION) {
+        media._duration = data.value;
+    }
+    else if (data.msg === Media.MEDIA_ERROR) {
+        if (media.errorCallback) {
+            media.errorCallback(data.value);
+        }
+    }
+    else if (data.msg == Media.MEDIA_POSITION) {
+        media._position = data.value;
+    }
+};
+
 }());
 };

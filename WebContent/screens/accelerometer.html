@@ -126,6 +126,9 @@
         		alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
         	}
         },1000);
+        document.addEventListener("pause", function() {console.log("*** PAUSE RECEIVED In ACCEL.HTML ***");}, false);
+        document.addEventListener("online", function() {console.log("*** ONLINE RECEIVED In ACCEL.HTML ***");}, false);
+        document.addEventListener("offline", function() {console.log("*** OFFLINE RECEIVED In ACCEL.HTML ***");}, false);
     }
 
 </script>

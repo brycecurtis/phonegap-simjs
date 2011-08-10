@@ -152,6 +152,7 @@ PhoneGap.addResource = function(name) {
 
 /**
  * Custom pub-sub channel that can have functions subscribed to it
+ * @constructor
  */
 PhoneGap.Channel = function (type)
 {
@@ -340,6 +341,12 @@ PhoneGap.onPhoneGapReady = new PhoneGap.Channel('onPhoneGapReady');
 PhoneGap.onPhoneGapInfoReady = new PhoneGap.Channel('onPhoneGapInfoReady');
 
 /**
+ * onPhoneGapConnectionReady channel is fired when the PhoneGap connection properties
+ * has been set.
+ */
+PhoneGap.onPhoneGapConnectionReady = new PhoneGap.Channel('onPhoneGapConnectionReady');
+
+/**
  * onResume channel is fired when the PhoneGap native code
  * resumes.
  */
@@ -373,15 +380,9 @@ if (typeof _nativeReady !== 'undefined') { PhoneGap.onNativeReady.fire(); }
  */
 PhoneGap.onDeviceReady = new PhoneGap.Channel('onDeviceReady');
 
-/**
- * Start listening for XHR callbacks onDeviceReady
- */
-//PhoneGap.onDeviceReady.subscribeOnce(function() {
-//    PhoneGap.JSCallback();
-//});
 
 // Array of channels that must fire before "deviceready" is fired
-PhoneGap.deviceReadyChannelsArray = [ PhoneGap.onPhoneGapReady]; // @bc , PhoneGap.onPhoneGapInfoReady];
+PhoneGap.deviceReadyChannelsArray = [ PhoneGap.onPhoneGapReady, PhoneGap.onPhoneGapInfoReady, PhoneGap.onPhoneGapConnectionReady];
 
 // Hashtable of user defined channels that must also fire before "deviceready" is fired
 PhoneGap.deviceReadyChannelsMap = {};
@@ -422,11 +423,6 @@ PhoneGap.Channel.join(function() {
     // Run PhoneGap constructors
     PhoneGap.onPhoneGapInit.fire();
 
-    // If emulator, then use built-in PhoneGap geolocation code
-    //if (device.emulator) {
-    //    Geolocation.usePhoneGap();
-    //}
-
     // Fire event to notify that all objects are created
     PhoneGap.onPhoneGapReady.fire();
 
@@ -435,9 +431,6 @@ PhoneGap.Channel.join(function() {
     PhoneGap.Channel.join(function() {
         console.log("JOIN - onPhoneGapReady + onPhoneGapInfoReady");
     
-        // Turn off app loading dialog
-        navigator.notification.activityStop();
-
         PhoneGap.onDeviceReady.fire();
 
         // Fire the onresume event, since first one happens before JavaScript is loaded
@@ -507,7 +500,7 @@ PhoneGap.fireEvent = function(type) {
  * Does a deep clone of the object.
  *
  * @param obj
- * @return
+ * @return {Object}
  */
 PhoneGap.clone = function(obj) {
     var i, retVal;
@@ -523,7 +516,7 @@ PhoneGap.clone = function(obj) {
         return retVal;
     }
     
-    if (obj instanceof Function) {
+    if (typeof obj === "function") {
         return obj;
     }
     
@@ -542,6 +535,185 @@ PhoneGap.clone = function(obj) {
         }
     }
     return retVal;
+};
+
+PhoneGap.callbackId = 0;
+PhoneGap.callbacks = {};
+PhoneGap.callbackStatus = {
+    NO_RESULT: 0,
+    OK: 1,
+    CLASS_NOT_FOUND_EXCEPTION: 2,
+    ILLEGAL_ACCESS_EXCEPTION: 3,
+    INSTANTIATION_EXCEPTION: 4,
+    MALFORMED_URL_EXCEPTION: 5,
+    IO_EXCEPTION: 6,
+    INVALID_ACTION: 7,
+    JSON_EXCEPTION: 8,
+    ERROR: 9,
+    EVENT: 10
+    };
+
+
+/**
+ * Execute a PhoneGap command.  It is up to the native side whether this action is synch or async.
+ * The native side can return:
+ *      Synchronous: PluginResult object as a JSON string
+ *      Asynchrounous: Empty string ""
+ * If async, the native side will PhoneGap.callbackSuccess or PhoneGap.callbackError,
+ * depending upon the result of the action.
+ *
+ * @param {Function} success    The success callback
+ * @param {Function} fail       The fail callback
+ * @param {String} service      The name of the service to use
+ * @param {String} action       Action to be run in PhoneGap
+ * @param {Array.<String>} [args]     Zero or more arguments to pass to the method
+ */
+PhoneGap.exec = function(success, fail, service, action, args) {
+    try {
+        var callbackId = service + PhoneGap.callbackId++;
+        //if (success || fail) {
+            PhoneGap.callbacks[callbackId] = {success:success, fail:fail};
+        //}
+        console.log("PhoneGap.exec("+service+", "+action+", "+JSON.stringify(args)+"): callbackId="+callbackId);
+        //public String exec(final String service, final String action, final String callbackId, final String jsonArgs, final boolean async)
+        //var r = prompt(PhoneGap.stringify(args), "gap:"+PhoneGap.stringify([service, action, callbackId, true]));
+        parent.postMessage(JSON.stringify({service:service, action:action, callbackId:callbackId, args:args}), "*");
+    } catch (e2) {
+        console.log("Error: "+e2);
+    }
+};
+
+window.addEventListener("message", function(e){
+    console.log("*****PG BC***** "+e.domain + " said: " + e.data);
+    var r = e.data;
+    
+    // If a result was returned
+    console.log("typeof result="+(typeof r));
+    if (r.length > 0) {
+    //if ((typeof r == "string") && (r.length > 0)) {
+        console.log("Result from exec=<"+dumpObj(r, '', ' ', 2)+">");
+        eval("var v="+r+";");
+        var callbackId = v.id;
+
+        // If status is OK, then return value back to caller
+        if (v.status === PhoneGap.callbackStatus.OK) {
+
+            // If there is a success callback, then call it now with
+            // returned value
+            if (PhoneGap.callbacks[callbackId].success) {
+                try {
+                    PhoneGap.callbacks[callbackId].success(v.message);
+                } catch (e) {
+                    console.log("Error in success callback: " + callbackId  + " = " + e);
+                }
+
+                // Clear callback if not expecting any more results
+                if (!v.keepCallback) {
+                    delete PhoneGap.callbacks[callbackId];
+                }
+            }
+            return v.message;
+        }
+
+        // If no result
+        else if (v.status === PhoneGap.callbackStatus.NO_RESULT) {
+
+            // Clear callback if not expecting any more results
+            if (!v.keepCallback) {
+                delete PhoneGap.callbacks[callbackId];
+            }
+        }
+        
+        // If event
+        else if (v.status === PhoneGap.callbackStatus.EVENT) {
+            if (v.message == 'pause') {
+                PhoneGap.onPause.fire();
+            }
+            else if (v.message == 'resume') {
+                PhoneGap.onResume.fire();
+            }
+            else {
+                PhoneGap.fireEvent(v.message);
+            }
+        }
+
+        // If error, then display error
+        else {
+            console.log("Error: Status="+v.status+" Message="+v.message);
+
+            // If there is a fail callback, then call it now with returned value
+            if (PhoneGap.callbacks[callbackId].fail) {
+                try {
+                    PhoneGap.callbacks[callbackId].fail(v.message);
+                }
+                catch (e1) {
+                    console.log("Error in error callback: "+callbackId+" = "+e1);
+                }
+
+                // Clear callback if not expecting any more results
+                if (!v.keepCallback) {
+                    delete PhoneGap.callbacks[callbackId];
+                }
+            }
+            return null;
+        }
+    }
+}, false);
+
+/**
+ * Called by native code when returning successful result from an action.
+ *
+ * @param callbackId
+ * @param args
+ */
+PhoneGap.callbackSuccess = function(callbackId, args) {
+    console.log("callbackSuccess("+dumpObj(args,'', ' ', 2)+")");
+
+    if (PhoneGap.callbacks[callbackId]) {
+
+        // If result is to be sent to callback
+        if (args.status === PhoneGap.callbackStatus.OK) {
+            try {
+                if (PhoneGap.callbacks[callbackId].success) {
+                    PhoneGap.callbacks[callbackId].success(args.message);
+                }
+            }
+            catch (e) {
+                console.log("Error in success callback: "+callbackId+" = "+e);
+            }
+        }
+
+        // Clear callback if not expecting any more results
+        if (!args.keepCallback) {
+            delete PhoneGap.callbacks[callbackId];
+        }
+    }
+};
+
+/**
+ * Called by native code when returning error result from an action.
+ *
+ * @param callbackId
+ * @param args
+ */
+PhoneGap.callbackError = function(callbackId, args) {
+    //console.log("callbackError("+args+")");
+
+    if (PhoneGap.callbacks[callbackId]) {
+        try {
+            if (PhoneGap.callbacks[callbackId].fail) {
+                PhoneGap.callbacks[callbackId].fail(args.message);
+            }
+        }
+        catch (e) {
+            console.log("Error in error callback: "+callbackId+" = "+e);
+        }
+
+        // Clear callback if not expecting any more results
+        if (!args.keepCallback) {
+            delete PhoneGap.callbacks[callbackId];
+        }
+    }
 };
 
 PhoneGap.close = function(context, func, params) {
@@ -573,18 +745,6 @@ PhoneGap.includeJavascript = function(jsfile, successCallback) {
     id.appendChild(el);
 };
 
-
-/**
- * This class is provided to bridge the gap between the way plugins were setup in 0.9.3 and 0.9.4.  
- * Users should be calling navigator.add.addService() instead of PluginManager.addService().
- * @class
- * @deprecated
- */
-var PluginManager = {
-    addService: function(serviceType, className) {
-        navigator.app.addService(serviceType, className);   
-    }
-};
 
 };
 

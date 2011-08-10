@@ -1,0 +1,96 @@
+<table style="cellspacing: 10;">
+    <tr>
+        <td colspan="2">Choose an image to use for camera:</td>
+    </tr>
+    <tr>
+        <td><img src="phonegap/camera/camera1_xs.jpg"
+            height="50px;" />
+        </td>
+        <td>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera1_xs.jpg');">XS</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera1_s.jpg');">S</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera1_m.jpg');">M</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera1_l.jpg');">L</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera1_xl.jpg');">XL</button>
+        </td>
+    </tr>
+    <tr>
+        <td><img src="phonegap/camera/camera2_xs.jpg"
+            height="50px;" />
+        </td>
+        <td>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera2_xs.jpg');">XS</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera2_s.jpg');">S</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera2_m.jpg');">M</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera2_l.jpg');">L</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setCameraImage('camera2_xl.jpg');">XL</button>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">Currently selected image for camera:</td>
+    </tr>
+    <tr>
+        <td><img id="cameraSelectedId" src="" height="50px" />
+        </td>
+        <td><span id="cameraSizeId"></span>
+        </td>
+    </tr>
+</table>
+<div
+    style="height: 5px; border-bottom: 1px solid blue; width: 100%; padding-top: 5px; padding-bottom: 5px;"></div>
+<table dtyle="cellspacing:10;">
+    <tr>
+        <td colspan="2">Choose an image to use for album:</td>
+    </tr>
+    <tr>
+        <td><img src="phonegap/camera/album1_xs.jpg" height="50px;" />
+        </td>
+        <td>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album1_xs.jpg');">XS</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album1_s.jpg');">S</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album1_m.jpg');">M</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album1_l.jpg');">L</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album1_xl.jpg');">XL</button>
+        </td>
+    </tr>
+    <tr>
+        <td><img src="phonegap/camera/album2_xs.jpg" height="50px;" />
+        </td>
+        <td>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album2_xs.jpg');">XS</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album2_s.jpg');">S</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album2_m.jpg');">M</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album2_l.jpg');">L</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="getService('Camera').setAlbumImage('album2_xl.jpg');">XL</button>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">Currently selected image for album:</td>
+    </tr>
+    <tr>
+        <td><img id="albumSelectedId" src="" height="50px" />
+        </td>
+        <td><span id="albumSizeId"></span>
+        </td>
+    </tr>
+</table>

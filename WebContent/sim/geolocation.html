@@ -1,0 +1,34 @@
+<table style="cellspacing:10;">
+    <tr>
+        <td><label for="geoLat">Latitude:</label></td>
+        <td><input type="text" name="geoLat" value="" dojoType="dijit.form.TextBox" id="geoLat"/></td>
+    </tr>
+    <tr>
+        <td><label for="geoLng">Longitude:</label></td>
+        <td><input type="text" name="geoLng" value="" dojoType="dijit.form.TextBox" id="geoLng"/></td>
+    </tr>
+    <tr>
+        <td><label for="geoAcc">Accuracy:</label></td>
+        <td><input type="text" name="geoAcc" value="" dojoType="dijit.form.TextBox" id="geoAcc"/></td>
+    </tr>
+
+    <tr>
+        <td><label for="geoAlt">Altitude:</label></td>
+        <td><input type="text" name="geoAlt" value="" dojoType="dijit.form.TextBox" id="geoAlt"/></td>
+    </tr>
+    <tr>
+        <td><label for="geoAltAcc">Altitude Accuracy:</label></td>
+        <td><input type="text" name="geoAltAcc" value="" dojoType="dijit.form.TextBox" id="geoAltAcc"/></td>
+    </tr>
+
+    <tr>
+        <td><label for="geoHead">Heading:</label></td>
+        <td><input type="text" name="geoHead" value="" dojoType="dijit.form.TextBox" id="geoHead"/></td>
+    </tr>
+    <tr>
+        <td><label for="geoVel">Velocity:</label></td>
+        <td><input type="text" name="geoVel" value="" dojoType="dijit.form.TextBox" id="geoVel"/></td>
+    </tr>
+
+</table>
+<button dojoType="dijit.form.Button" type="button" onClick="getService('Geolocation').updateGeolocation();">Next</button>

@@ -3,11 +3,12 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010-2011, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("compass")) {
 PhoneGap.addResource("compass");
+(function() {
 
 /**
  * This class provides access to device Compass data.
@@ -36,10 +37,20 @@ Compass.ERROR_MSG = ["Not running", "Starting", "", "Failed to start"];
  */
 Compass.prototype.getCurrentHeading = function(successCallback, errorCallback, options) {
 
-    // Get acceleration
-	setTimeout(function() {
-		successCallback(navigator.compass.getNext());
-	}, 1);
+    // successCallback required
+    if (typeof successCallback !== "function") {
+        console.log("Compass Error: successCallback is not a function");
+        return;
+    }
+
+    // errorCallback optional
+    if (errorCallback && (typeof errorCallback !== "function")) {
+        console.log("Compass Error: errorCallback is not a function");
+        return;
+    }
+
+    // Get heading
+    PhoneGap.exec(successCallback, errorCallback, "Compass", "getHeading", []);
 };
 
 /**
@@ -55,11 +66,32 @@ Compass.prototype.watchHeading= function(successCallback, errorCallback, options
     // Default interval (100 msec)
     var frequency = (options !== undefined) ? options.frequency : 100;
 
+    // successCallback required
+    if (typeof successCallback !== "function") {
+        console.log("Compass Error: successCallback is not a function");
+        return;
+    }
+
+    // errorCallback optional
+    if (errorCallback && (typeof errorCallback !== "function")) {
+        console.log("Compass Error: errorCallback is not a function");
+        return;
+    }
+
+    // Make sure compass timeout > frequency + 10 sec
+    PhoneGap.exec(
+        function(timeout) {
+            if (timeout < (frequency + 10000)) {
+                PhoneGap.exec(null, null, "Compass", "setTimeout", [frequency + 10000]);
+            }
+        },
+        function(e) { }, "Compass", "getTimeout", []);
+
     // Start watch timer to get headings
     var id = PhoneGap.createUUID();
     navigator.compass.timers[id] = setInterval(
         function() {
-        	successCallback(navigator.compass.getNext());
+            PhoneGap.exec(successCallback, errorCallback, "Compass", "getHeading", []);
         }, (frequency ? frequency : 1));
 
     return id;
@@ -85,12 +117,5 @@ PhoneGap.addConstructor(function() {
         navigator.compass = new Compass();
     }
 });
-
-/**
- * Simulate compass
- */
-Compass.prototype.getNext = function() {
-	return parent.getHeading();
-};
-
-};
+}());
+}

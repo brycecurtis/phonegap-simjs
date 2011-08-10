@@ -8,24 +8,39 @@
 
 if (!PhoneGap.hasResource("device")) {
 PhoneGap.addResource("device");
+(function() {
 
 /**
  * This represents the mobile device, and provides properties for inspecting the model, version, UUID of the
  * phone, etc.
  * @constructor
  */
-var Device = function() {
+Device = function() {
     console.log("Device()");
-    var r = parent.getDevice();
-    for (var i in r) {
-    	this[i] = r[i];
-    }
-    //this.platform = "Android";
-    //this.version = "2.2";
-    //this.name = "";
-    //this.uuid = "UUID";
-    //this.phonegap = "0.9.5";
-    //this.available = true;
+    this.available = PhoneGap.available;   // TODO: Remove?
+    this.platform = null;
+    this.version = null;
+    this.name = null;
+    this.uuid = null;
+    this.phonegap = null;
+
+    var me = this;
+    this.getInfo(
+        function(info) {
+            console.log("--- Got INFO");
+            me.available = true;
+            me.platform = info.platform;
+            me.version = info.version;
+            me.name = info.name;
+            me.uuid = info.uuid;
+            me.phonegap = info.phonegap;
+            PhoneGap.onPhoneGapInfoReady.fire();
+        },
+        function(e) {
+            me.available = false;
+            console.log("Error initializing PhoneGap: " + e);
+            alert("Error initializing PhoneGap: "+e);
+        });
 };
 
 /**
@@ -36,9 +51,20 @@ var Device = function() {
  */
 Device.prototype.getInfo = function(successCallback, errorCallback) {
 	console.log("Device.getInfo()");
-	setTimeout(function() {
-		successCallback(this);
-	}, 1);
+    // successCallback required
+    if (typeof successCallback !== "function") {
+        console.log("Device Error: successCallback is not a function");
+        return;
+    }
+
+    // errorCallback optional
+    if (errorCallback && (typeof errorCallback !== "function")) {
+        console.log("Device Error: errorCallback is not a function");
+        return;
+    }
+
+    // Get info
+    PhoneGap.exec(successCallback, errorCallback, "Device", "getDeviceInfo", []);
 };
 
 /*
@@ -49,7 +75,7 @@ Device.prototype.getInfo = function(successCallback, errorCallback) {
  */
 Device.prototype.overrideBackButton = function() {
 	console.log("Device.overrideBackButton() is deprecated.  Use App.overrideBackbutton(true).");
-	app.overrideBackbutton(true);
+	navigator.app.overrideBackbutton(true);
 };
 
 /*
@@ -60,7 +86,7 @@ Device.prototype.overrideBackButton = function() {
  */
 Device.prototype.resetBackButton = function() {
 	console.log("Device.resetBackButton() is deprecated.  Use App.overrideBackbutton(false).");
-	app.overrideBackbutton(false);
+	navigator.app.overrideBackbutton(false);
 };
 
 /*
@@ -71,7 +97,7 @@ Device.prototype.resetBackButton = function() {
  */
 Device.prototype.exitApp = function() {
 	console.log("Device.exitApp() is deprecated.  Use App.exitApp().");
-	app.exitApp();
+	navigator.app.exitApp();
 };
 
 PhoneGap.addConstructor(function() {
@@ -79,4 +105,5 @@ PhoneGap.addConstructor(function() {
         navigator.device = window.device = new Device();
     }
 });
-};
+}());
+}

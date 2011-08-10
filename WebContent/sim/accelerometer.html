@@ -1,0 +1,15 @@
+            <table style="cellspacing:10;">
+                <tr>
+                    <td><label for="accelX">X:</label></td>
+                    <td><input type="text" name="accelX" value="" dojoType="dijit.form.TextBox" id="accelX"/></td>
+                </tr>
+                <tr>
+                    <td><label for="accelY">Y:</label></td>
+                    <td><input type="text" name="accelY" value="" dojoType="dijit.form.TextBox" id="accelY"/></td>
+                </tr>
+                <tr>
+                    <td><label for="accelZ">Z:</label></td>
+                    <td><input type="text" name="accelZ" value="" dojoType="dijit.form.TextBox" id="accelZ"/></td>
+                </tr>
+            </table>
+            <button dojoType="dijit.form.Button" type="button" onClick="getService('Accelerometer').nextAccel();">Next</button>

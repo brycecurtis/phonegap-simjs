@@ -1,0 +1,74 @@
+<table style="cellspacing: 10;">
+    <tr>
+        <td><label for="platform">Platform:</label>
+        </td>
+        <td><input type="text" name="platform" value=""
+            dojoType="dijit.form.TextBox" id="platform"
+            onchange="getService('Device').saveDevice()" />
+        </td>
+    </tr>
+    <tr>
+        <td><label for="version">Version:</label>
+        </td>
+        <td><input type="text" name="version" value=""
+            dojoType="dijit.form.TextBox" id="version"
+            onchange="getService('Device').saveDevice()" />
+        </td>
+    </tr>
+    <tr>
+        <td><label for="uuid">UUID:</label>
+        </td>
+        <td><input type="text" name="uuid" value=""
+            dojoType="dijit.form.TextBox" id="uuid"
+            onchange="getService('Device').saveDevice()" />
+        </td>
+    </tr>
+    <tr>
+        <td><label for="deviceSize">Size:</label>
+        </td>
+        <td><input type="text" name="deviceWidth" value=""
+            dojoType="dijit.form.TextBox" id="deviceWidth"
+            style="width: 50px;"
+            onchange="getService('Device').setDeviceSize()" /> x <input
+            type="text" name="deviceHeight" value=""
+            dojoType="dijit.form.TextBox" id="deviceHeight"
+            style="width: 50px;"
+            onchange="getService('Device').setDeviceSize()" /> (w x h
+            pixels)</td>
+    </tr>
+    <tr>
+        <td><label for="deviceOrient">Orientation:</label>
+        </td>
+        <td>
+            <form id="deviceOrientForm">
+                <input type="radio" name="deviceOrient"
+                    id="deviceOrientProfile" value="p" checked
+                    onchange="getService('Device').setDeviceSize()" /> <label
+                    for="deviceOrientProfile">Profile</label> <input
+                    type="radio" name="deviceOrient"
+                    id="deviceOrientLandscape" value="l"
+                    onchange="getService('Device').setDeviceSize()" /> <label
+                    for="deviceOrientLandscape">Landscape</label>
+            </form>
+        </td>
+    </tr>
+    <tr style="border: 1px solid blue;">
+        <td style="text-valign: top;" valign="top"><label>Events:</label>
+        </td>
+        <td style="border: 1px solid lightgray;">
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="fireEvent('pause')">Pause</button>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="fireEvent('resume')">Resume</button>
+            <br>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="fireEvent('backbutton')">Back button</button>
+            <br>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="fireEvent('menubutton')">Menu button</button>
+            <br>
+            <button dojoType="dijit.form.Button" type="button"
+                onClick="fireEvent('searchbutton')">Search
+                button</button></td>
+    </tr>
+</table>

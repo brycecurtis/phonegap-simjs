@@ -1,0 +1,17 @@
+<form id="networkForm">
+    <label>None</label>
+    <input type="radio" name="networkType" id="network_none" value="none" onChange="getService('Network Status').onChange(this.value);" /> <br />
+    <label>Ethernet Network</label>
+    <input type="radio" name="networkType" id="network_ethernet" value="ethernet" onChange="getService('Network Status').onChange(this.value);" /> <br />
+    <label>WiFi Network</label>
+    <input type="radio" name="networkType" id="network_wifi" checked value="wifi" onChange="getService('Network Status').onChange(this.value);" /> <br />
+    <label>2G Network</label>
+    <input type="radio" name="networkType" id="network_2g" value="2g" onChange="getService('Network Status').onChange(this.value);" /> <br />
+    <label>3G Network</label>
+    <input type="radio" name="networkType" id="network_3g" value="3g" onChange="getService('Network Status').onChange(this.value);" /> <br />
+    <label>4G Network</label>
+    <input type="radio" name="networkType" id="network_4g" value="4g" onChange="getService('Network Status').onChange(this.value);" /> <br />
+    <label>Unknown Network</label>
+    <input type="radio" name="networkType" id="network_unknown" value="unknown" onChange="getService('Network Status').onChange(this.value);" /> <br />
+</form>
+

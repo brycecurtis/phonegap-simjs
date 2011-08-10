@@ -3,7 +3,7 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010, IBM Corporation
+ * Copyright (c) 2010-2011, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("geolocation")) {
@@ -25,6 +25,7 @@ var Geolocation = function() {
 /**
  * Position error object
  *
+ * @constructor
  * @param code
  * @param message
  */
@@ -61,11 +62,8 @@ Geolocation.prototype.getCurrentPosition = function(successCallback, errorCallba
             timeout = options.timeout;
         }
     }
-    
-    // Get geolocation
-	setTimeout(function() {
-		successCallback(navigator._geo.getNext());
-	}, 1);
+    //navigator._geo.listeners.global = {"success" : successCallback, "fail" : errorCallback };
+    PhoneGap.exec(successCallback, errorCallback, "Geolocation", "getCurrentLocation", [enableHighAccuracy, timeout, maximumAge]);
 };
 
 /**
@@ -98,10 +96,8 @@ Geolocation.prototype.watchPosition = function(successCallback, errorCallback, o
     
     // Start watch timer
     var id = PhoneGap.createUUID();
-    navigator._geo.listeners[id] = setInterval(function() {
-    	successCallback(navigator._geo.getNext());
-    }, (maximumAge ? maximumAge : 10000));
-
+    //navigator._geo.listeners[id] = setInterval(function() {
+    PhoneGap.exec(successCallback, errorCallback, "Geolocation", "start", [id, enableHighAccuracy, timeout, maximumAge]);
     return id;
 };
 
@@ -111,12 +107,8 @@ Geolocation.prototype.watchPosition = function(successCallback, errorCallback, o
  * @param {String} id       The ID of the watch returned from #watchPosition
  */
 Geolocation.prototype.clearWatch = function(id) {
-   
-    // Stop javascript timer & remove from timer list
-    if (id && navigator._geo.listeners[id] !== undefined) {
-        clearInterval(navigator._geo.listeners[id]);
-        delete navigator._geo.listeners[id];
-    }
+    PhoneGap.exec(null, null, "Geolocation", "stop", [id]);
+    delete navigator._geo.listeners[id];
 };
 
 /**
@@ -145,21 +137,5 @@ PhoneGap.addConstructor(function() {
     navigator.geolocation = navigator._geo;
     Geolocation.usePhoneGap();
 });
-
-/**
- * Simulate geolocation
- */
-Geolocation.prototype.getNext = function() {
-	return parent.getGeolocation();
-	/*
-	var lat = rand(100);
-	var lng = rand(100);
-	var alt = rand(10000);
-	var altacc = 1;
-	var head = rand(360);
-	var vel = rand(100);
-    var coords =  new Coordinates(lat, lng, alt, altacc, head, vel);
-    return {coords: coords};*/
-};
 
 };

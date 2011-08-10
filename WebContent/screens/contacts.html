@@ -27,7 +27,7 @@
         obj.filter = "Brooks";
         obj.multiple = true;
         obj.limit = 1000;
-        navigator.service.contacts.find(
+        navigator.contacts.find(
             ["displayName", "name", "phoneNumbers", "emails", "urls", "note"],
             function(contacts) {
                 var s = "";
@@ -63,7 +63,7 @@
     function addContact(){
         console.log("addContact for Android:");
         /*
-        var contact = navigator.service.contacts.create();
+        var contact = navigator.contacts.create();
         contact.displayName = "Plumber";
         var name = new ContactName();
         name.givenName = "Jane";
@@ -76,7 +76,7 @@
             function(e) { alert("Contact save failed: " + e); });
         */
         try{
-            var contact = navigator.service.contacts.create({"displayName": "Bryce User"});
+            var contact = navigator.contacts.create({"displayName": "Bryce User"});
             //contact.id = 1;
             var contactName = {
                 formatted: "Dooney User",
@@ -117,7 +117,7 @@
         console.log("updateContact for Android:");
 
         try{
-            var contact = navigator.service.contacts.create({"displayName": "Simon User"});
+            var contact = navigator.contacts.create({"displayName": "Simon User"});
             contact.id = 1;
             var contactName = {
                 formatted: "Some Guy",
@@ -160,7 +160,7 @@
     function removeContact(){
         console.log("removeContact for Android:");
         try{
-            var contact = navigator.service.contacts.create({"displayName": "Bryce User"});
+            var contact = navigator.contacts.create({"displayName": "Bryce User"});
             contact.id = 1;
 
             contact.remove(

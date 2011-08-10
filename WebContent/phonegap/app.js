@@ -8,17 +8,19 @@
 
 if (!PhoneGap.hasResource("app")) {
 PhoneGap.addResource("app");
+(function() {
 
 /**
  * Constructor
  * @constructor
  */
-App = function() {};
+var App = function() {};
 
 /**
  * Clear the resource cache.
  */
 App.prototype.clearCache = function() {
+    PhoneGap.exec(null, null, "App", "clearCache", []);
 };
 
 /**
@@ -39,12 +41,14 @@ App.prototype.clearCache = function() {
  *      app.loadUrl("http://server/myapp/index.html", {wait:2000, loadingDialog:"Wait,Loading App", loadUrlTimeoutValue: 60000});
  */
 App.prototype.loadUrl = function(url, props) {
+    PhoneGap.exec(null, null, "App", "loadUrl", [url, props]);
 };
 
 /**
  * Cancel loadUrl that is waiting to be loaded.
  */
 App.prototype.cancelLoadUrl = function() {
+    PhoneGap.exec(null, null, "App", "cancelLoadUrl", []);
 };
 
 /**
@@ -52,15 +56,7 @@ App.prototype.cancelLoadUrl = function() {
  * Instead of BACK button loading the previous web page, it will exit the app.
  */
 App.prototype.clearHistory = function() {
-};
-
-/**
- * Add a class that implements a service.
- *
- * @param serviceType
- * @param className
- */
-App.prototype.addService = function(serviceType, className) {
+    PhoneGap.exec(null, null, "App", "clearHistory", []);
 };
 
 /**
@@ -73,24 +69,18 @@ App.prototype.addService = function(serviceType, className) {
  * @param override		T=override, F=cancel override
  */
 App.prototype.overrideBackbutton = function(override) {
+    PhoneGap.exec(null, null, "App", "overrideBackbutton", [override]);
 };
-
-/**
- * Return whether the Android back button is overridden by the user.
- * 
- * @return boolean
- */
-//App.prototype.isBackbuttonOverridden = function() {
-//	return PhoneGap.exec(null, null, "App", "isBackbuttonOverridden", [])
-//};
 
 /**
  * Exit and terminate the application.
  */
 App.prototype.exitApp = function() {
+	return PhoneGap.exec(null, null, "App", "exitApp", []);
 };
 
 PhoneGap.addConstructor(function() {
-    navigator.app = window.app = new App();
+    navigator.app = new App();
 });
-};
+}());
+}
