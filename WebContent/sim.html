@@ -3,14 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>PhoneGap Simulator</title>
-<script src="filesim.js" type="text/javascript"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js" type="text/javascript" djConfig="parseOnLoad: true"></script>
 <!-- script src="sim/dojo/dojo.js" type="text/javascript" djConfig="parseOnLoad: true"></script -->
 <script type="text/javascript">
             dojo.require("dijit.layout.ContentPane");
             dojo.require("dijit.layout.BorderContainer");
             dojo.require("dijit.layout.TabContainer");
-            ////dojo.require("dijit.layout.AccordionContainer"); // problem loading all files so history.back causes sim.html to reload!
             dojo.require("dijit.form.TextBox");            
             dojo.require("dojo.data.ItemFileReadStore");
             dojo.require("dijit.Tree" );
@@ -27,165 +25,7 @@
             .claro .dijitAccordionInnerContainer { background-color: #3388dd;}
             .claro .dijitAccordionTitle1 { background-color: lightblue;}
         </style>
-
-<script type="text/javascript">
-
-var baseUrl = "";
-{
-	var src = ""+document.location;
-    var p = src.indexOf("/sim.html");
-    if (p > 0) {
-    	baseUrl = src.substring(0, p);
-    }
-}
-console.log("baseUrl="+baseUrl);
-
-var htmlPage = "index.html";
-
-
-var iframeWindow;
-
-function rand(max) {
-    return Math.random()*max;
-}
-
-function roundNumber(num) {
-    var dec = 3;
-    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
-    return result;
-}
-
-
-dojo.addOnLoad(function() {
-    console.log("dojo.addOnLoad()");
-    document.getElementById("simulator").src = htmlPage;
-    initUrl();
-});
-
-/**
- * Load a JavaScript file after page has loaded.
- *
- * @param {String} jsfile               The url of the JavaScript file to load.
- * @param {Function} successCallback    The callback to call when the file has been loaded.
- */
-var loadJavascript = function(jsfile, successCallback) {
-    console.log("loadJavascript("+jsfile+")");
-    var id = document.getElementsByTagName("head")[0];         
-    var el = document.createElement('script');
-    el.type = 'text/javascript';
-    if (typeof successCallback === 'function') {
-        el.onload = successCallback;
-    }
-    el.src = jsfile;
-    id.appendChild(el);
-};
-
-var simLoadCompleted = false;
-function frameOnLoad() {
-    if (document.getElementById("simulator").src) {
-        console.log("frameOnLoad()="+document.getElementById("simulator").src);
-        iframeWindow = document.getElementById("simulator").contentWindow;
-        for (var svc in services) {
-            //console.log("SVC="+svc+" "+dumpObj(services[svc],'', ' ',2));
-            if (services[svc].obj === null) {
-        	   services[svc].obj = new services[svc].callback();
-        	}
-        }
-        simLoadCompleted = true;
-    }
-}
-
-PluginResultStatus = {
-	    NO_RESULT: 0,
-	    OK: 1,
-	    CLASS_NOT_FOUND_EXCEPTION: 2,
-	    ILLEGAL_ACCESS_EXCEPTION: 3,
-	    INSTANTIATION_EXCEPTION: 4,
-	    MALFORMED_URL_EXCEPTION: 5,
-	    IO_EXCEPTION: 6,
-	    INVALID_ACTION: 7,
-	    JSON_EXCEPTION: 8,
-	    ERROR: 9,
-	    EVENT: 10
-	    };
-
-/**
- * Handle plugin requests.
- * Receives request from client and returns JSON PluginResult object
- *
- * @param {Object} e        e.data is JSON serialized string of request
- */
-window.addEventListener("message", function(e){
-    console.log("*****BC***** "+e.domain + " said: " + e.data);
-    eval("var t="+e.data);
-    console.log(" -- DUMP="+dumpObj(t, '', ' ', 2));
-    var r = null;
-    console.log("type="+(typeof services[t.service]));
-    if (typeof services[t.service] === 'object') {
-    	//console.log(" SERVICE="+t.service+"=="+dumpObj(services[t.service],'', ' ',1));
-        r = services[t.service].obj.exec(t.action, t.callbackId, t.args);
-    }
-    else {
-    	r = new PluginResult(t.callbackId, PluginResultStatus.CLASS_NOT_FOUND_EXCEPTION);
-    }
-    console.log("Sending "+dumpObj(r,'',' ',2));
-    e.source.postMessage(JSON.stringify(r), e.origin);
-}, false);
-
- /**
-  * Send event to device
-  *
-  * @param type
-  */
-function fireEvent(type) {
-     console.log("fireEvent("+type+")");
-     iframeWindow.postMessage(JSON.stringify({id:"", status:PluginResultStatus.EVENT, message:type}), "*");
-};
-
-/**
- * Send result to device
- *
- * @param {PluginResult} r
- */
-function sendResult(r) {
-    console.log("Sending result "+dumpObj(r,'',' ',2));
-    iframeWindow.postMessage(JSON.stringify(r), "*");
-}
-
-/**
- * Create a new plugin result
- */
-var PluginResult = function(id, status, message, keepCallback) {
-    this.id = id;
-	this.status = status;
-	this.message = message;
-	this.keepCallback = keepCallback | false;
-}
-
-var services = {};
-/**
- * Add service
- *
- * @param service
- * @param callback
- */
-function addService(service, callback) {
-	services[service] = {callback:callback, obj:null};
-	if (simLoadCompleted) {
-        services[service].obj = new callback();
-	}
-}
-
-/**
- * Return object for service
- *
- * @return {Object}
- */
-function getService(service) {
-	return services[service].obj;
-}
-
-</script>
+<script src="sim/sim.js" type="text/javascript"></script>
 
 </head>
 <body onload="console.log('body LOAD')" class="claro">
@@ -195,10 +35,8 @@ function getService(service) {
 
     <!-- Header container -->
     <div dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size:larger;background-color:lightgray;border:0px solid white;">
-       <!-- button dojoType="dijit.form.Button" type="button" onClick="iframeBack();" style="float:left;">< Prev</button -->
        <span style="font-size:larger;font-weight:bold;color:#333388;">PhoneGap Simulator</span>
-       <!-- button dojoType="dijit.form.Button" type="button" onClick="iframeForward();" style="float:right;">Next ></button -->
-       <img src="pg_logo.png" style="float:left;"/>
+       <img src="sim/pg_logo.png" style="float:left;"/>
     </div>
     <!-- end Header container -->
         
@@ -217,10 +55,10 @@ function getService(service) {
             <script type="text/javascript">
                 function loadUrl() {
                     htmlPage = dojo.byId("htmlUrl").value;
-                    document.getElementById("simulator").src = htmlPage
+                    document.getElementById("simulator").src = htmlPage;
                 }
-                function initUrl() {
-                    dojo.byId("htmlUrl").value = htmlPage;
+                function initUrl(url) {
+                   dojo.byId("htmlUrl").value = url;
                 }
             </script>
         </div>
@@ -229,7 +67,6 @@ function getService(service) {
         <!-- Device -->
         <div dojoType="dijit.TitlePane" title="Device" open="true"
             href="sim/device.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/device.js')"></div>
-        <!-- script src="sim/device.js" type="text/javascript"></script -->
         <!-- end Device -->
         
         <!-- Accelerometer -->
@@ -259,7 +96,7 @@ function getService(service) {
 
         <!-- File -->
         <div dojoType="dijit.TitlePane" title="File" open="false"
-            href="sim/file.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/file.js')"></div>
+            href="sim/file.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/file.js')"></div>            
         <!-- end File -->
 
         <!-- Geolocation -->
@@ -282,12 +119,13 @@ function getService(service) {
     
     <!-- Simulator container -->
     <div dojoType="dijit.layout.ContentPane" region="center" tabStrip="true" style="background-color:lightgray;">
+
         <!-- Header container -->
-    <div id="simheader" dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size1:larger;background-color:lightgray;">
-       <button dojoType="dijit.form.Button" type="button" onClick="iframeBack();" style="float:left;">< Prev</button>
-       <span style="font-size:larger;">Device</span>
-       <button dojoType="dijit.form.Button" type="button" onClick="iframeForward();" style="float:right;">Next ></button>
-       <script type="text/javascript">
+        <div id="simheader" dojoType="dijit.layout.ContentPane" region="top" splitter="false" style="text-align:center;font-size1:larger;background-color:lightgray;">
+            <button dojoType="dijit.form.Button" type="button" onClick="iframeBack();" style="float:left;">< Prev</button>
+            <span style="font-size:larger;">Device</span>
+            <button dojoType="dijit.form.Button" type="button" onClick="iframeForward();" style="float:right;">Next ></button>
+            <script type="text/javascript">
             function iframeBack() {
                 if (iframeWindow) {
                     iframeWindow.history.back();
@@ -298,16 +136,21 @@ function getService(service) {
                     iframeWindow.history.forward();
                 }
             }
-       </script>
-    </div>
-    <!-- end Header container -->
-    
+            </script>
+        </div>
+        <!-- end Header container -->
+   
         <iframe id="simulator" style="width1:480px;height1:800px;visibility:hidden;" onload="frameOnLoad()"></iframe>
     </div>
     <!-- end Simulator container -->
     
 </div>
 <!-- end BorderContainer -->
+
+<!--  Applets used by features -->
+<applet id="pgFileApplet" name="pgFileApplet" code="com.phonegap.applet.FileApplet" archive="sim/phonegapApplet.jar" MAYSCRIPT width="1" height="1">
+    <p>Java-enabled browser needed for this feature.</p>
+</applet>
 
 </body>
 </html>

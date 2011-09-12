@@ -5,7 +5,7 @@
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
     <title>PhoneGap</title>
-    <script type="text/javascript" charset="utf-8" src="../phonegap/phonegap.0.9.5.js"></script>      
+    <script type="text/javascript" charset="utf-8" src="../phonegap.js"></script>      
     <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
     <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
     <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
@@ -23,149 +23,94 @@
     //-------------------------------------------------------------------------
 
     var fileTests = function() {
+    	
+    	var filesystem = null;
+    	var fileentry = null;
+    	
+    	// Retrieved file system
+    	gotFS = function(fs) {
+    		fileTestsOutput("<hr>Retrived file system.");
+    		filesystem = fs;
+    		
+    		// Create or get "gap123" dir
+    		fs.root.getDirectory("gap123", {create: true, exclusive: false}, gotDir, function(e) { fileTestsOutput("Failed to create 'gap123' directory.")});
+    	};
 
-        fileTestsOutput("<hr>testSaveLocationExists");
-        navigator.fileMgr.testSaveLocationExists(
-            function(r) {
-                fileTestsOutput("- testSaveLocationExists: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- testSaveLocationExists: Failed ("+e+")");
-            });
+    	// Retrieved dir
+    	gotDir = function(entry) {
+    		fileTestsOutput("Retrieved 'gap123' directory.");
 
-        fileTestsOutput("<hr>getFreeDiskSpace");
-        navigator.fileMgr.getFreeDiskSpace(
-            function(r) {
-                fileTestsOutput("- getFreeDiskSpace: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- getFreeDiskSpace: Failed ("+e+")");
-            });
+    		// Create or get a file
+    		entry.getFile("gap.txt", {create: true, exclusive: false}, gotFile, function(e) { fileTestsOutput("Failed to create 'gap.txt' file.")});
+    	};
 
-        writer = new FileWriter();
-        writer.oncomplete = function(evt) {
-                fileTestsOutput("<hr>writeAsText(sdcard/gapTemp.txt)");
-                fileTestsOutput("- writeAsText: Passed ("+evt.target.result+")");
-
-                var reader = new FileReader();
-                reader.onload = function(evt) {
-                        fileTestsOutput("<hr>readAsText(sdcard/gapTemp.txt)");
-                        fileTestsOutput("- readAsText: Passed ("+evt.target.result+")");
-                    };
-                reader.onerror = function(evt) {
-                        fileTestsOutput("<hr>readAsText(sdcard/gapTemp.txt)");
-                        fileTestsOutput("- readAsText: Error ("+evt.target.error+")");
-                    };
-                reader.readAsText("sdcard/gapTemp.txt");
-
-                var reader2 = new FileReader();
-                reader2.onload = function(evt) {
-                        fileTestsOutput("<hr>readAsDataURL(sdcard/gapTemp.txt)");
-                        fileTestsOutput("- readAsDataURL: Passed<br> ("+evt.target.result+")");
-                    };
-                reader2.onerror = function(evt) {
-                        fileTestsOutput("<hr>readAsDataURL(sdcard/gapTemp.txt)");
-                        fileTestsOutput("- readAsDataURL: Error ("+evt.target.error+")");
-                    };
-                reader2.readAsDataURL("sdcard/gapTemp.txt");
-
-            };
-        writer.onerror = function(e) {
-                fileTestsOutput("<hr>writeAsText(sdcard/gapTemp.txt)");
-                fileTestsOutput("- writeAsText: Error ("+e+")");
-            };
-        writer.writeAsText("sdcard/gapTemp.txt", "This is a test of PhoneGap FileWriter at "+(new Date())+".", false);
-
-        fileTestsOutput("<hr>testFileExists(Pic.jpg)");
-        navigator.fileMgr.testFileExists("Pic.jpg",
-            function(r) {
-                fileTestsOutput("- testFileExists: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- testFileExists: Error ("+e+")");
-            });
-
-        fileTestsOutput("<hr>testDirectoryExists(download)");
-        navigator.fileMgr.testDirectoryExists("download",
-            function(r) {
-                fileTestsOutput("- testDirectoryExists: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- testDirectoryExists: Error ("+e+")");
-            });
-
-        fileTestsOutput("<hr>createDirectory(gap123)");
-        navigator.fileMgr.createDirectory("gap123",
-            function(r) {
-                fileTestsOutput("- createDirectory: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- createDirectory: Error ("+e+")");
-            });
-
-        fileTestsOutput("<hr>testDirectoryExists(gap123)");
-        navigator.fileMgr.testDirectoryExists("gap123",
-            function(r) {
-                fileTestsOutput("- testDirectoryExists: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- testDirectoryExists: Error ("+e+")");
-            });
-
-        fileTestsOutput("<hr>deleteDirectory(gap123)");
-        navigator.fileMgr.deleteDirectory("gap123",
-            function(r) {
-                fileTestsOutput("- deleteDirectory: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- deleteDirectory: Error ("+e+")");
-            });
-
-        fileTestsOutput("<hr>testDirectoryExists(gap123)");
-        navigator.fileMgr.testDirectoryExists("gap123",
-            function(r) {
-                fileTestsOutput("- testDirectoryExists: Passed ("+r+")");
-            },
-            function(e) {
-                fileTestsOutput("- testDirectoryExists: Error ("+e+")");
-            });
-
-        //fileTestsOutput("DONE");
+    	// Retrieved file
+    	gotFile = function(entry) {
+            fileTestsOutput("Retrieved 'gap.txt' file.");
+            fileentry = entry;
+            
+            // Create writer
+            entry.createWriter(gotWriter, function(e) { fileTestsOutput("Failed to create 'gap.txt' writer.")});
+    	};
+    	
+    	// Created writer
+    	gotWriter = function(writer) {
+            fileTestsOutput("Created 'gap.txt' writer.");
+    		writer.onwrite = function(evt) {
+    			fileTestsOutput("File 'gap.txt' written.");
+    			readFile();
+    	    };
+    	    writer.write("PhoneGap sample text");
+    	};
+    	
+    	// Read file
+    	readFile = function() {
+    	    var reader = new FileReader();
+    	    reader.onloadend = function(evt) {
+    	    	fileTestsOutput("Read file 'gap.txt':");
+    	    	fileTestsOutput("<div style='padding-left:20px;'>"+evt.target.result+"</div>");
+    		};
+    		reader.readAsText(fileentry);
+    	};
+    	
+    	// Get file system
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, function(e) { fileTestsOutput("Failed to get file system.")});
     };
 	
+
 	function getPersistent() {
-		window.localFileSystem._castFS({status:1,message:{"root":{"isDirectory":true,"isFile":false,"name":"persistent","fullPath":"\/Users\/simonmacdonald\/Work\/workspace\/.metadata\/.plugins\/org.eclipse.wst.server.core\/tmp0\/wtpwebapps\/phonegap-java\/filesystem\/persistent"},"name":"persistent"},keepCallback:false});
-        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, 
-		    function(fileSystem) {
-                console.log("FS Name = " + fileSystem.name);
-                console.log("File Name = " + fileSystem.root.name);
-                console.log("Full Path = " + fileSystem.root.fullPath);
-                console.log("isDirectory = " + fileSystem.root.isDirectory);
-                console.log("isFile = " + fileSystem.root.isFile);
-            }, 
-			function(e) {
-	            fileTestsOutput("- testDirectoryExists: Error ("+e+")");
-	        });
+		fileTestsOutput("<hr>Get persistent File System:");
+		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, 
+		function(fileSystem) {
+			fileTestsOutput("FS Name = " + fileSystem.name);
+			fileTestsOutput("File Name = " + fileSystem.root.name);
+			fileTestsOutput("Full Path = " + fileSystem.root.fullPath);
+			fileTestsOutput("isDirectory = " + fileSystem.root.isDirectory);
+			fileTestsOutput("isFile = " + fileSystem.root.isFile);
+		}, function(evt) {
+			console.log(evt.target.error.code);
+		});
+	}
+
+	var fileTestsOutput = function(s) {
+		var el = document.getElementById("file_results");
+		el.innerHTML = el.innerHTML + s + "<br>";
 	};
 
-    var fileTestsOutput = function(s) {
-        var el = document.getElementById("file_results");
-        el.innerHTML = el.innerHTML + s + "<br>";
-    };
-    
-    /**
-     * Function called when page has finished loading.
-     */
-    function init() {
-        console.log("accelerometer.init()");
-        document.addEventListener("deviceready", function() {deviceReady = true;}, false);
-        window.setTimeout(function() {
-            if (!deviceReady) {
-                alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
-            }
-        },1000);
-    }
-
+	/**
+	 * Function called when page has finished loading.
+	 */
+	function init() {
+		console.log("accelerometer.init()");
+		document.addEventListener("deviceready", function() {
+			deviceReady = true;
+		}, false);
+		window.setTimeout(function() {
+			if (!deviceReady) {
+			    alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+			}
+		}, 1000);
+	}
 </script>
 
   </head>
@@ -175,15 +120,16 @@
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
             <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
                 <div dojoType="dojox.mobile.RoundRect"> 
-                    <div id="file_results">Select action below.</div>
+                    Select action below.
+                    <div id="file_results" style="font-size:75%;"></div>
                 </div>
         </ul>
         <h2 class="mblHeading">Action</h2>
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
-            <li dojoType="dojox.mobile.ListItem" onclick="fileTests();">Read and Write Files</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="getPersistent();">Request Persistent Filesystem</li>
         </ul>
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
-            <li dojoType="dojox.mobile.ListItem" onclick="getPersistent();">Request Persistent Filesystem</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="fileTests();">Read and Write Files</li>
         </ul>
     </div>
   </body>

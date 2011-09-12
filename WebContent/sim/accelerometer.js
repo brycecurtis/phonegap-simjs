@@ -21,7 +21,7 @@ addService("Accelerometer", function() {
 
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, jsonArgs) {
+	this.exec = function(action, args, callbackId) {
 		if (action=='getAcceleration') {
 			var r = getAcceleration();
 			this.nextAccel();

@@ -14,7 +14,7 @@ addService("Compass", function() {
 	
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, jsonArgs) {
+	this.exec = function(action, args, callbackId) {
 		if (action=='getHeading') {
 			var r = getHeading();
 			this.nextHeading();

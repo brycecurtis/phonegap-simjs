@@ -44,7 +44,7 @@ addService("Geolocation", function() {
 
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, jsonArgs) {
+	this.exec = function(action, args, callbackId) {
 		if (action=='getCurrentLocation') {
 			var r = getGeolocation();
 			this.nextGeolocation();

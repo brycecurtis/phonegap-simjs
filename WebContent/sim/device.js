@@ -116,7 +116,7 @@ addService("Device", function () {
 
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, jsonArgs) {
+	this.exec = function(action, args, callbackId) {
 		if (action=='getDeviceInfo') {
 			var r = getDevice();
 			return new PluginResult(callbackId, PluginResultStatus.OK, r, false);

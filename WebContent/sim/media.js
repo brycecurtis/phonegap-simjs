@@ -167,7 +167,7 @@ addService("Media", function() {
 	
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, args) {
+	this.exec = function(action, args, callbackId) {
 		if (action=='startPlayingAudio') {
 		    audioMode(true);
 		    audioUrl(callbackId, /* id */ args[0], /* src */ args[1]);

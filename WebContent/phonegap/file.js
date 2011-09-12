@@ -5,205 +5,16 @@
  * Copyright (c) 2005-2010, Nitobi Software Inc.
  * Copyright (c) 2010-2011, IBM Corporation
  */
-
+console.log("===========++++++++++++ START OF FILE.JS ++++++++++++");
 if (!PhoneGap.hasResource("file")) {
 PhoneGap.addResource("file");
-(function() {
-	
-	var filesim = parent.filesim;
-	
-	/**
-	 * Helper to get file name from path
-	 * 
-	 * @param {String} path
-	 * @return {String}
-	 */
-	getFilename = function(path) {
-		var i = path.lastIndexOf('/');
-		if (i < 1) {
-			return path;
-		}
-		return path.substring(i+1);
-	};
-
-	/**
-	 * Helper to get parent from file or dir.
-	 * 
-	 * @param {String} path
-	 * @return {String}
-	 */
-	getDir = function(path) {
-		var i = path.lastIndexOf('/');
-		if (i < 1) {
-			return "";
-		}
-		return path.substring(0, i);
-	};
-	
-	/**
-	 * Helper to validate file name
-	 * 
-	 * @param {String} path
-	 * @return {Boolean}
-	 */
-	validateFile = function(path) {
-		//return (/^[^\\\/\:\*\?\"\<\>\|\.]+(\.[^\\\/\:\*\?\"\<\>\|\.]+)+$/.test(path));
-		//return (/^[^\\\/\:\*\?\"\<\>\|\.]+$/.test(path));
-		if (path.indexOf(":") > -1) return false;
-		return true;
-	};
-
-	// http://www.webtoolkit.info/javascript-base64.html
-	/**
-	*
-	*  Base64 encode / decode
-	*  http://www.webtoolkit.info/
-	*
-	**/
-	 
-	var Base64 = {
-	 
-		// private property
-		_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
-	 
-		// public method for encoding
-		encode : function (input) {
-			var output = "";
-			var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-			var i = 0;
-	 
-			input = Base64._utf8_encode(input);
-	 
-			while (i < input.length) {
-	 
-				chr1 = input.charCodeAt(i++);
-				chr2 = input.charCodeAt(i++);
-				chr3 = input.charCodeAt(i++);
-	 
-				enc1 = chr1 >> 2;
-				enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-				enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-				enc4 = chr3 & 63;
-	 
-				if (isNaN(chr2)) {
-					enc3 = enc4 = 64;
-				} else if (isNaN(chr3)) {
-					enc4 = 64;
-				}
-	 
-				output = output +
-				this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
-				this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
-	 
-			}
-	 
-			return output;
-		},
-	 
-		// public method for decoding
-		decode : function (input) {
-			var output = "";
-			var chr1, chr2, chr3;
-			var enc1, enc2, enc3, enc4;
-			var i = 0;
-	 
-			input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-	 
-			while (i < input.length) {
-	 
-				enc1 = this._keyStr.indexOf(input.charAt(i++));
-				enc2 = this._keyStr.indexOf(input.charAt(i++));
-				enc3 = this._keyStr.indexOf(input.charAt(i++));
-				enc4 = this._keyStr.indexOf(input.charAt(i++));
-	 
-				chr1 = (enc1 << 2) | (enc2 >> 4);
-				chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-				chr3 = ((enc3 & 3) << 6) | enc4;
-	 
-				output = output + String.fromCharCode(chr1);
-	 
-				if (enc3 != 64) {
-					output = output + String.fromCharCode(chr2);
-				}
-				if (enc4 != 64) {
-					output = output + String.fromCharCode(chr3);
-				}
-	 
-			}
-	 
-			output = Base64._utf8_decode(output);
-	 
-			return output;
-	 
-		},
-	 
-		// private method for UTF-8 encoding
-		_utf8_encode : function (string) {
-			string = string.replace(/\r\n/g,"\n");
-			var utftext = "";
-	 
-			for (var n = 0; n < string.length; n++) {
-	 
-				var c = string.charCodeAt(n);
-	 
-				if (c < 128) {
-					utftext += String.fromCharCode(c);
-				}
-				else if((c > 127) && (c < 2048)) {
-					utftext += String.fromCharCode((c >> 6) | 192);
-					utftext += String.fromCharCode((c & 63) | 128);
-				}
-				else {
-					utftext += String.fromCharCode((c >> 12) | 224);
-					utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-					utftext += String.fromCharCode((c & 63) | 128);
-				}
-	 
-			}
-	 
-			return utftext;
-		},
-	 
-		// private method for UTF-8 decoding
-		_utf8_decode : function (utftext) {
-			var string = "";
-			var i = 0;
-			var c = c1 = c2 = 0;
-	 
-			while ( i < utftext.length ) {
-	 
-				c = utftext.charCodeAt(i);
-	 
-				if (c < 128) {
-					string += String.fromCharCode(c);
-					i++;
-				}
-				else if((c > 191) && (c < 224)) {
-					c2 = utftext.charCodeAt(i+1);
-					string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-					i += 2;
-				}
-				else {
-					c2 = utftext.charCodeAt(i+1);
-					c3 = utftext.charCodeAt(i+2);
-					string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-					i += 3;
-				}
-	 
-			}
-	 
-			return string;
-		}
-	 
-	};
-	
 /**
  * This class provides some useful information about a file.
  * This is the fields returned when navigator.fileMgr.getFileProperties()
  * is called.
  * @constructor
  */
-FileProperties = function(filePath) {
+var FileProperties = function(filePath) {
     this.filePath = filePath;
     this.size = 0;
     this.lastModifiedDate = null;
@@ -219,7 +30,7 @@ FileProperties = function(filePath) {
  * @param lastModifiedDate {Date} last modified date
  * @param size {Number} size of the file in bytes
  */
-File = function(name, fullPath, type, lastModifiedDate, size) {
+var File = function(name, fullPath, type, lastModifiedDate, size) {
 	this.name = name || null;
     this.fullPath = fullPath || null;
 	this.type = type || null;
@@ -228,7 +39,7 @@ File = function(name, fullPath, type, lastModifiedDate, size) {
 };
 
 /** @constructor */
-FileError = function() {
+var FileError = function() {
    this.code = null;
 };
 
@@ -280,62 +91,20 @@ FileMgr.prototype.getFreeDiskSpace = function(successCallback, errorCallback) {
     return PhoneGap.exec(successCallback, errorCallback, "File", "getFreeDiskSpace", []);
 };
 
-FileMgr.prototype.writeAsText = function(fileName, data, append, successCallback, errorCallback) {
-    PhoneGap.exec(successCallback, errorCallback, "File", "writeAsText", [fileName, data, append]);
-};
-
 FileMgr.prototype.write = function(fileName, data, position, successCallback, errorCallback) {
-	//console.log("FileMgr.write("+fileName+","+data+","+position+")");
-	if (position) {
-		this.readAsText(fileName, "UTF-8", function(content) {
-			var r = content.substring(0,position)+data+content.substring(position);
-			filesim.write(fileName, r, function(cnt) {
-				if (cnt === r.length) {
-					successCallback(data.length);
-				}
-				else {
-					if (errorCallback) errorCallback();
-				}
-			}, errorCallback);
-		}, errorCallback);
-	}
-	else {
-		filesim.write(fileName, data, successCallback, errorCallback);
-	}
+    PhoneGap.exec(successCallback, errorCallback, "File", "write", [fileName, data, position]);
 };
 
 FileMgr.prototype.truncate = function(fileName, size, successCallback, errorCallback) {
-	//console.log("FileMgr.truncate("+fileName+","+size+")");
-	var me = this;
-	me.readAsText(fileName, "UTF-8", function(content) {
-		me.write(fileName, content.substring(0,size), 0, successCallback, errorCallback);
-	}, errorCallback);
+    PhoneGap.exec(successCallback, errorCallback, "File", "truncate", [fileName, size]);
 };
 
 FileMgr.prototype.readAsText = function(fileName, encoding, successCallback, errorCallback) {
-	//console.log("FileMgr.readAsText("+fileName+","+encoding+")");
-	filesim.read(fileName, successCallback, 
-		function(e) {
-			//console.log("GOT ERROR="+e);
-			if (errorCallback) {
-				if (e === filesim.ERROR_NOT_FOUND) {
-					var err = new FileError();
-					err.code = FileError.NOT_FOUND_ERR;
-					errorCallback(err);
-				}
-				else {
-					errorCallback(e);
-				}
-			}
-		});
+    PhoneGap.exec(successCallback, errorCallback, "File", "readAsText", [fileName, encoding]);
 };
 
 FileMgr.prototype.readAsDataURL = function(fileName, successCallback, errorCallback) {
-	//console.log("FileMgr.readAsDataURL("+fileName+")");
-	this.readAsText(fileName, "UTF-8", function(content){
-		var r = "data:text/plain;base64," + Base64.encode(content);
-		if (successCallback) successCallback(r);
-	}, errorCallback);
+    PhoneGap.exec(successCallback, errorCallback, "File", "readAsDataURL", [fileName]);
 };
 
 PhoneGap.addConstructor(function() {
@@ -358,7 +127,7 @@ PhoneGap.addConstructor(function() {
  *      To read from the SD card, the file name is "sdcard/my_file.txt"
  * @constructor
  */
-FileReader = function() {
+var FileReader = function() {
     this.fileName = "";
 
     this.readyState = 0;
@@ -402,7 +171,7 @@ FileReader.prototype.abort = function() {
     }
     // If abort callback
     if (typeof this.onabort === "function") {
-        this.oneabort({"type":"abort", "target":this});
+        this.onabort({"type":"abort", "target":this});
     }
     // If load end callback
     if (typeof this.onloadend === "function") {
@@ -610,7 +379,7 @@ FileReader.prototype.readAsArrayBuffer = function(file) {
  * @param file {File} File object containing file properties
  * @param append if true write to the end of the file, otherwise overwrite the file
  */
-FileWriter = function(file) {
+var FileWriter = function(file) {
     this.fileName = "";
     this.length = 0;
 	if (file) {
@@ -661,7 +430,7 @@ FileWriter.prototype.abort = function() {
     }
     // If abort callback
     if (typeof this.onabort === "function") {
-        this.oneabort({"type":"abort", "target":this});
+        this.onabort({"type":"abort", "target":this});
     }
 
     this.readyState = FileWriter.DONE;
@@ -870,7 +639,7 @@ FileWriter.prototype.truncate = function(size) {
  * @constructor
  * {Date} modificationTime (readonly)
  */
-Metadata = function() {
+var Metadata = function() {
     this.modificationTime=null;
 };
 
@@ -881,7 +650,7 @@ Metadata = function() {
  * @param {boolean} create file or directory if it doesn't exist
  * @param {boolean} exclusive if true the command will fail if the file or directory exists
  */
-Flags = function(create, exclusive) {
+var Flags = function(create, exclusive) {
     this.create = create || false;
     this.exclusive = exclusive || false;
 };
@@ -893,7 +662,7 @@ Flags = function(create, exclusive) {
  * {DOMString} name the unique name of the file system (readonly)
  * {DirectoryEntry} root directory of the file system (readonly)
  */
-FileSystem = function() {
+var FileSystem = function() {
     this.name = null;
     this.root = null;
 };
@@ -902,7 +671,7 @@ FileSystem = function() {
  * An interface that lists the files and directories in a directory.
  * @constructor
  */
-DirectoryReader = function(fullPath){
+var DirectoryReader = function(fullPath){
     this.fullPath = fullPath || null;
 };
 
@@ -913,41 +682,7 @@ DirectoryReader = function(fullPath){
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryReader.prototype.readEntries = function(successCallback, errorCallback) {
-	filesim.dir(this.fullPath, function(rows) {
-		var entries = [];
-		for (var i=0; i<rows.length; i++) {
-			if (rows[i].type == 1) {
-				var entry = new FileEntry();
-				entry.isFile = true;
-				entry.isDirectory = false;
-				entry.name = getFilename(rows[i].name);
-				entry.fullPath = rows[i].name;
-				entries.push(entry);
-			}
-			else {
-				var entry = new DirectoryEntry();
-				entry.isFile = false;
-				entry.isDirectory = true;
-				entry.name = getFilename(rows[i].name);
-				entry.fullPath = rows[i].name;
-				entries.push(entry);
-			}
-		}
-		if (entries.length > 0) {
-			if (successCallback) {
-				successCallback(entries);
-			}
-		}
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.NOT_FOUND_ERR;
-				errorCallback(err);
-			}
-		}
-	}, function() {
-		console.log("ReadEntries ERROR unknown");
-	});
+    PhoneGap.exec(successCallback, errorCallback, "File", "readEntries", [this.fullPath]);
 };
 
 /**
@@ -960,7 +695,7 @@ DirectoryReader.prototype.readEntries = function(successCallback, errorCallback)
  * {DOMString} fullPath the absolute full path to the directory (readonly)
  * {FileSystem} filesystem on which the directory resides (readonly)
  */
-DirectoryEntry = function() {
+var DirectoryEntry = function() {
     this.isFile = false;
     this.isDirectory = true;
     this.name = null;
@@ -971,70 +706,13 @@ DirectoryEntry = function() {
 /**
  * Copies a directory to a new location
  *
- * @param {DirectoryEntry} parentDir the directory to which to copy the entry
+ * @param {DirectoryEntry} parent the directory to which to copy the entry
  * @param {DOMString} newName the new name of the entry, defaults to the current name
  * @param {Function} successCallback is called with the new entry
  * @param {Function} errorCallback is called with a FileError
  */
-DirectoryEntry.prototype.copyTo = function(parentDir, newName, successCallback, errorCallback) {
-	//console.log("DirectoryEntry.copyTo("+parentDir.fullPath+","+newName+")");
-	var newPath = parentDir.fullPath+"/"+newName;
-	if (!newName) {
-		newPath = parentDir.fullPath+"/"+this.name;
-	}
-	//console.log(" ==== src="+this.fullPath+" dest="+newPath);
-	
-	// If invalid dest
-	if (!validateFile(newPath)) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.ENCODING_ERR;
-			errorCallback(err);	
-		}
-	}
-	
-	// If same path, then error
-	else if (this.fullPath == newPath) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.INVALID_MODIFICATION_ERR;
-			errorCallback(err);	
-		}
-	}
-	
-	// If dest is under src, then error
-	else if (newPath.indexOf(this.fullPath+"/") == 0) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.INVALID_MODIFICATION_ERR;
-			errorCallback(err);	
-		}		
-	}
-	
-	else {	
-		filesim.copyDirTo(this.fullPath, newPath, function() {
-			if (successCallback) {
-				var entry = new DirectoryEntry();	
-				entry.isFile = false;
-				entry.isDirectory = true;
-				entry.name = getFilename(newPath);
-				entry.fullPath = newPath;
-				successCallback(entry);
-			}
-		}, function(e) {
-			console.log("DirectoryEntry.copyTo() error="+e);
-			if (errorCallback) {
-				var err = new FileError();
-				if (e==2) {
-					err.code = FileError.INVALID_MODIFICATION_ERR;
-				}
-				else {
-					err.code = FileError.NOT_FOUND_ERR;
-				}
-				errorCallback(err);
-			}
-		});
-	}
+DirectoryEntry.prototype.copyTo = function(parent, newName, successCallback, errorCallback) {
+    PhoneGap.exec(successCallback, errorCallback, "File", "copyTo", [this.fullPath, parent, newName]);
 };
 
 /**
@@ -1044,26 +722,7 @@ DirectoryEntry.prototype.copyTo = function(parentDir, newName, successCallback, 
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryEntry.prototype.getMetadata = function(successCallback, errorCallback) {
-	//console.log("DirectoryEntry.getMetadata() for "+this.fullPath);
-
-	filesim.getDir(this.fullPath, function(row) {
-		//console.log(" -- ENTIES="+dumpObj(row,'', ' ', 2));
-				
-		if (successCallback) {
-			var data = new Metadata();
-			data.modificationTime = new Date(row.modified);
-			successCallback(data);
-		}
-	},
-	function() {
-		//console.log(" -- No dir found");
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.NOT_FOUND_ERR;
-			errorCallback(err);
-		}
-	});
-
+    PhoneGap.exec(successCallback, errorCallback, "File", "getMetadata", [this.fullPath]);
 };
 
 /**
@@ -1073,117 +732,19 @@ DirectoryEntry.prototype.getMetadata = function(successCallback, errorCallback) 
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryEntry.prototype.getParent = function(successCallback, errorCallback) {
-	//console.log("DirectoryEntry.getParent() for "+this.fullPath);
-	var dir = getDir(this.fullPath);
-	// Parent of root is root
-	if (!dir) {
-		dir = this.fullPath;
-	}
-	filesim.getDir(dir, 
-
-		// If found
-		function(row) {
-								
-			// Call success with dir entry
-			if (row.type == 2) {
-				if (successCallback) {
-					var entry = new DirectoryEntry();
-					entry.isFile = false;
-					entry.isDirectory = true;
-					entry.name = getFilename(row.name);
-					entry.fullPath = row.name;
-					successCallback(entry);
-				}
-			}
-				
-			// Was a file, not a dir, so error
-			else {
-				if (errorCallback) {
-					var err = new FileError();
-					err.code = FileError.TYPE_MISMATCH_ERR;
-					errorCallback(err);
-				}	
-			}
-		},
-		// If not found
-		function() {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.NOT_FOUND_ERR;
-				errorCallback(err);
-			}	
-		}
-	);
-
+    PhoneGap.exec(successCallback, errorCallback, "File", "getParent", [this.fullPath]);
 };
 
 /**
  * Moves a directory to a new location
  *
- * @param {DirectoryEntry} parentDir the directory to which to move the entry
+ * @param {DirectoryEntry} parent the directory to which to move the entry
  * @param {DOMString} newName the new name of the entry, defaults to the current name
  * @param {Function} successCallback is called with the new entry
  * @param {Function} errorCallback is called with a FileError
  */
-DirectoryEntry.prototype.moveTo = function(parentDir, newName, successCallback, errorCallback) {
-	//console.log("DirectoryEntry.moveTo("+parentDir.fullPath+","+newName+")");
-	var newPath = parentDir.fullPath+"/"+newName;
-	if (!newName) {
-		newPath = parentDir.fullPath+"/"+this.name;
-	}
-	//console.log(" ==== src="+this.fullPath+" dest="+newPath);
-	
-	// If invalid dest
-	if (!validateFile(newPath)) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.ENCODING_ERR;
-			errorCallback(err);	
-		}
-	}
-	
-	// If same path, then error
-	else if (this.fullPath == newPath) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.INVALID_MODIFICATION_ERR;
-			errorCallback(err);	
-		}
-	}
-	
-	// If dest is under src, then error
-	else if (newPath.indexOf(this.fullPath+"/") == 0) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.INVALID_MODIFICATION_ERR;
-			errorCallback(err);	
-		}		
-	}
-	
-	else {	
-		filesim.moveDirTo(this.fullPath, newPath, function() {
-			if (successCallback) {
-				var entry = new DirectoryEntry();	
-				entry.isFile = false;
-				entry.isDirectory = true;
-				entry.name = getFilename(newPath);
-				entry.fullPath = newPath;
-				successCallback(entry);
-			}
-		}, function(e) {
-			//console.log("DirectoryEntry.moveTo() error="+e);
-			if (errorCallback) {
-				var err = new FileError();
-				if (e==5) {
-					err.code = FileError.INVALID_MODIFICATION_ERR;
-				}
-				else {
-					err.code = FileError.NOT_FOUND_ERR;
-				}
-				errorCallback(err);
-			}
-		});
-	}
+DirectoryEntry.prototype.moveTo = function(parent, newName, successCallback, errorCallback) {
+    PhoneGap.exec(successCallback, errorCallback, "File", "moveTo", [this.fullPath, parent, newName]);
 };
 
 /**
@@ -1193,34 +754,7 @@ DirectoryEntry.prototype.moveTo = function(parentDir, newName, successCallback, 
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryEntry.prototype.remove = function(successCallback, errorCallback) {
-	//console.log("DirectoryEntry.remove() for "+this.fullPath);
-	
-	// If deleting root, then error
-	if ((this.fullPath=='tmp') || (this.fullPath=='data') || (this.fullPath=='app') || (this.fullPath=='resource')) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.NO_MODIFICATION_ALLOWED_ERR;
-			errorCallback(err);	
-		}
-	}
-
-	else {
-		filesim.delDir(this.fullPath, 
-		function(rows){
-			if (rows == 1) {
-				if (successCallback) {
-					successCallback();
-				}
-			}
-			else {
-				if (errorCallback) {
-					var err = new FileError();
-					err.code = FileError.INVALID_MODIFICATION_ERR;
-					errorCallback(err);
-				}	
-			}
-		});
-	}
+    PhoneGap.exec(successCallback, errorCallback, "File", "remove", [this.fullPath]);
 };
 
 /**
@@ -1230,7 +764,7 @@ DirectoryEntry.prototype.remove = function(successCallback, errorCallback) {
  * @return uri
  */
 DirectoryEntry.prototype.toURI = function(mimeType) {
-    return this.fullPath;
+    return "file://" + this.fullPath;
 };
 
 /**
@@ -1249,74 +783,7 @@ DirectoryEntry.prototype.createReader = function(successCallback, errorCallback)
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryEntry.prototype.getDirectory = function(path, options, successCallback, errorCallback) {
-	//console.log("DirectoryEntry.getDirectory("+path+")");
-	var fullPath = this.fullPath + "/" + path;
-
-	filesim.getDir(fullPath, 
-
-	// If found
-	function(row) {
-		
-		// If exclusive & create, then this is an error since it already exists
-		if (options && options.create && options.exclusive) {
-			var err = new FileError();
-			err.code = FileError.PATH_EXISTS_ERR;
-			if (errorCallback) {
-				errorCallback(err);
-			}
-			return;	
-		}
-		
-		// Call success with dir entry
-		if (row.type == 2) {
-			if (successCallback) {
-				var entry = new DirectoryEntry();
-				entry.isFile = (row.type == 1);
-				entry.isDirectory = (row.type == 2);
-				entry.name = getFilename(row.name);
-				entry.fullPath = row.name;
-				successCallback(entry);
-			}
-		}
-		
-		// Was a file, not a dir, so error
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.TYPE_MISMATCH_ERR;
-				errorCallback(err);
-			}	
-		}
-	},
-	// If not found
-	function() {
-		// If create
-		if (options && options.create) {
-			filesim.mkdir(fullPath,function() {
-
-				// Call success with dir entry
-				if (successCallback) {
-					var entry = new DirectoryEntry();
-					entry.isFile = false;
-					entry.isDirectory = true;
-					entry.name = getFilename(fullPath);
-					entry.fullPath = fullPath;
-					successCallback(entry);
-				}
-				
-			},function() {
-				console.log("Unknown error GetDirectory()");
-			});
-		}
-		// Else error
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.NOT_FOUND_ERR;
-				errorCallback(err);
-			}	
-		}
-	});
+    PhoneGap.exec(successCallback, errorCallback, "File", "getDirectory", [this.fullPath, path, options]);
 };
 
 /**
@@ -1328,78 +795,7 @@ DirectoryEntry.prototype.getDirectory = function(path, options, successCallback,
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryEntry.prototype.getFile = function(path, options, successCallback, errorCallback) {
-	//console.log("DirectoryEntry.getFile("+path+")"); // options="+options+" callback="+successCallback);
-	var fullPath = this.fullPath + "/" + path;
-	filesim.getFileOrDir(fullPath, function(row) {
-		
-		// If file found
-		//console.log(" -- ENTIES="+dumpObj(row,'', ' ', 2));
-		
-		// If exclusive & create, then this is an error since it already exists
-		if (options && options.create && options.exclusive) {
-			var err = new FileError();
-			err.code = FileError.PATH_EXISTS_ERR;
-			if (errorCallback) {
-				errorCallback(err);
-			}
-		}
-		
-		// If file exists
-		else if (row.type == 1) {
-			if (successCallback) {
-				var entry = new FileEntry();	
-				entry.isFile = (row.type == 1);
-				entry.isDirectory = (row.type == 2);
-				entry.name = getFilename(fullPath);
-				entry.fullPath = fullPath;
-				successCallback(entry);
-			}
-		}
-
-		// Was a dir, not a file, so error
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.TYPE_MISMATCH_ERR;
-				errorCallback(err);
-			}	
-		}
-	},
-	
-	// File not found
-	function() {
-		//console.log(" -- No file found: "+fullPath);
-		
-		// If create flag, then create file
-		if (options && options.create) {
-			//console.log(" -- Create file "+fullPath);
-			filesim.write(fullPath, "", function() {
-				if (successCallback) {
-					var entry = new FileEntry();
-					entry.isFile = true;
-					entry.isDirectory = false;
-					entry.name = getFilename(path);
-					entry.fullPath = fullPath;
-					successCallback(entry);
-				}
-			},
-			function() {
-				if (errorCallback) {
-					errorCallback();
-				}
-			}
-			);
-		}
-		
-		// Else return not found error
-		else {
-			var err = new FileError();
-			err.code = FileError.NOT_FOUND_ERR;
-			if (errorCallback) {
-				errorCallback(err);
-			}
-		}
-	});
+    PhoneGap.exec(successCallback, errorCallback, "File", "getFile", [this.fullPath, path, options]);
 };
 
 /**
@@ -1409,33 +805,7 @@ DirectoryEntry.prototype.getFile = function(path, options, successCallback, erro
  * @param {Function} errorCallback is called with a FileError
  */
 DirectoryEntry.prototype.removeRecursively = function(successCallback, errorCallback) {
-	//console.log("DirectoryEntry.removeRecursively() for "+this.fullPath);
-	
-	// If deleting root, then error
-	if ((this.fullPath=='tmp') || (this.fullPath=='data') || (this.fullPath=='app') || (this.fullPath=='resource')) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.NO_MODIFICATION_ALLOWED_ERR;
-			errorCallback(err);	
-		}
-	}
-	
-	else {
-		filesim.delDir(this.fullPath+"%", function(count) {
-			if (count > 0) {
-				if (successCallback) {
-					successCallback();
-				}
-			}
-			else {
-				if (errorCallback) {
-					var err = new FileError();
-					err.code = FileError.NOT_FOUND_ERR;
-					errorCallback(err);
-				}
-			}
-		});
-	}
+    PhoneGap.exec(successCallback, errorCallback, "File", "removeRecursively", [this.fullPath]);
 };
 
 /**
@@ -1448,7 +818,7 @@ DirectoryEntry.prototype.removeRecursively = function(successCallback, errorCall
  * {DOMString} fullPath the absolute full path to the file (readonly)
  * {FileSystem} filesystem on which the directory resides (readonly)
  */
-FileEntry = function() {
+var FileEntry = function() {
     this.isFile = true;
     this.isDirectory = false;
     this.name = null;
@@ -1459,60 +829,13 @@ FileEntry = function() {
 /**
  * Copies a file to a new location
  *
- * @param {DirectoryEntry} parentDir the directory to which to copy the entry
+ * @param {DirectoryEntry} parent the directory to which to copy the entry
  * @param {DOMString} newName the new name of the entry, defaults to the current name
  * @param {Function} successCallback is called with the new entry
  * @param {Function} errorCallback is called with a FileError
  */
-FileEntry.prototype.copyTo = function(parentDir, newName, successCallback, errorCallback) {
-	//console.log("FileEntry.copyTo("+parentDir.fullPath+","+newName+")");
-	var newPath = parentDir.fullPath+"/"+newName;
-	if (!newName) {
-		newPath = parentDir.fullPath+"/"+this.name;
-	}
-	
-	// If invalid dest
-	if (!validateFile(newPath)) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.ENCODING_ERR;
-			errorCallback(err);	
-		}
-	}
-
-	// If same file, then error
-	else if (this.fullPath == newPath) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.INVALID_MODIFICATION_ERR;
-			errorCallback(err);	
-		}
-
-	}
-	
-	else {
-		filesim.copyTo(this.fullPath, newPath, function() {
-			if (successCallback) {
-				var entry = new FileEntry();	
-				entry.isFile = true;
-				entry.isDirectory = false;
-				entry.name = getFilename(newPath);
-				entry.fullPath = newPath;
-				successCallback(entry);
-			}
-		}, function(e) {
-			if (errorCallback) {
-				var err = new FileError();
-				if (e==2) {
-					err.code = FileError.INVALID_MODIFICATION_ERR;
-				}
-				else {
-					err.code = FileError.NOT_FOUND_ERR;
-				}
-				errorCallback(err);
-			}
-		});
-	}
+FileEntry.prototype.copyTo = function(parent, newName, successCallback, errorCallback) {
+    PhoneGap.exec(successCallback, errorCallback, "File", "copyTo", [this.fullPath, parent, newName]);
 };
 
 /**
@@ -1522,38 +845,7 @@ FileEntry.prototype.copyTo = function(parentDir, newName, successCallback, error
  * @param {Function} errorCallback is called with a FileError
  */
 FileEntry.prototype.getMetadata = function(successCallback, errorCallback) {
-	//console.log("FileEntry.getMetadata() for "+this.fullPath);
-	var fullPath = this.fullPath;
-	filesim.getFileOrDir(this.fullPath, function(row) {
-		//console.log(" -- ENTIES="+dumpObj(row,'', ' ', 2));
-				
-		// If file exists
-		if (row.type == 1) {
-			if (successCallback) {
-				var data = new Metadata();
-				data.modificationTime = new Date(row.modified);
-				successCallback(data);
-			}
-		}
-
-		// Was a dir, not a file, so error
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.TYPE_MISMATCH_ERR;
-				errorCallback(err);
-			}	
-		}
-	},
-	function() {
-		//console.log(" -- No file found");
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.NOT_FOUND_ERR;
-			errorCallback(err);
-		}
-	});
-
+    PhoneGap.exec(successCallback, errorCallback, "File", "getMetadata", [this.fullPath]);
 };
 
 /**
@@ -1563,104 +855,19 @@ FileEntry.prototype.getMetadata = function(successCallback, errorCallback) {
  * @param {Function} errorCallback is called with a FileError
  */
 FileEntry.prototype.getParent = function(successCallback, errorCallback) {
-	//console.log("FileEntry.getParent() for "+this.fullPath);
-	var dir = getDir(this.fullPath);
-	filesim.getDir(dir, 
-
-		// If found
-		function(row) {
-								
-			// Call success with dir entry
-			if (row.type == 2) {
-				if (successCallback) {
-					var entry = new DirectoryEntry();
-					entry.isFile = false;
-					entry.isDirectory = true;
-					entry.name = getFilename(row.name);
-					entry.fullPath = row.name;
-					successCallback(entry);
-				}
-			}
-				
-			// Was a file, not a dir, so error
-			else {
-				if (errorCallback) {
-					var err = new FileError();
-					err.code = FileError.TYPE_MISMATCH_ERR;
-					errorCallback(err);
-				}	
-			}
-		},
-		// If not found
-		function() {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.NOT_FOUND_ERR;
-				errorCallback(err);
-			}	
-		}
-	);
+    PhoneGap.exec(successCallback, errorCallback, "File", "getParent", [this.fullPath]);
 };
 
 /**
  * Moves a directory to a new location
  *
- * @param {DirectoryEntry} parentDir the directory to which to move the entry
+ * @param {DirectoryEntry} parent the directory to which to move the entry
  * @param {DOMString} newName the new name of the entry, defaults to the current name
  * @param {Function} successCallback is called with the new entry
  * @param {Function} errorCallback is called with a FileError
  */
-FileEntry.prototype.moveTo = function(parentDir, newName, successCallback, errorCallback) {
-	//console.log("FileEntry.moveTo("+parentDir.fullPath+","+newName+")");
-	
-	var newPath = parentDir.fullPath+"/"+newName;
-	if (!newName) {
-		newPath = parentDir.fullPath+"/"+this.name;
-	}
-	
-	// If invalid dest
-	if (!validateFile(newPath)) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.ENCODING_ERR;
-			errorCallback(err);	
-		}
-	}
-
-	// If same file, then error
-	else if (this.fullPath == newPath) {
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.INVALID_MODIFICATION_ERR;
-			errorCallback(err);	
-		}
-
-	}
-	
-	else {
-		filesim.moveTo(this.fullPath, newPath, function() {
-			if (successCallback) {
-				var entry = new FileEntry();	
-				entry.isFile = true;
-				entry.isDirectory = false;
-				entry.name = getFilename(newPath);
-				entry.fullPath = newPath;
-				successCallback(entry);
-			}
-		}, function(e) {
-			if (errorCallback) {
-				var err = new FileError();
-				if (e==5) {
-					err.code = FileError.INVALID_MODIFICATION_ERR;
-				}
-				else {
-					err.code = FileError.NOT_FOUND_ERR;
-				}
-				errorCallback(err);
-			}
-		});
-	}
-
+FileEntry.prototype.moveTo = function(parent, newName, successCallback, errorCallback) {
+    PhoneGap.exec(successCallback, errorCallback, "File", "moveTo", [this.fullPath, parent, newName]);
 };
 
 /**
@@ -1670,20 +877,7 @@ FileEntry.prototype.moveTo = function(parentDir, newName, successCallback, error
  * @param {Function} errorCallback is called with a FileError
  */
 FileEntry.prototype.remove = function(successCallback, errorCallback) {
-	filesim.delFile(this.fullPath, function(rows) {
-		if (rows == 1) {
-			if (successCallback) {
-				successCallback();
-			}
-		}
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-		    	err.code = FileError.NOT_FOUND_ERR;
-				errorCallback(err);
-			}
-		}
-	});
+    PhoneGap.exec(successCallback, errorCallback, "File", "remove", [this.fullPath]);
 };
 
 /**
@@ -1693,7 +887,7 @@ FileEntry.prototype.remove = function(successCallback, errorCallback) {
  * @return uri
  */
 FileEntry.prototype.toURI = function(mimeType) {
-	return this.fullPath;
+    return "file://" + this.fullPath;
 };
 
 /**
@@ -1727,42 +921,11 @@ FileEntry.prototype.createWriter = function(successCallback, errorCallback) {
  * @param {Function} errorCallback is called with a FileError
  */
 FileEntry.prototype.file = function(successCallback, errorCallback) {
-	//console.log("FileEntry.file() for "+this.fullPath);
-	var fullPath = this.fullPath;
-	filesim.getFileOrDir(this.fullPath, function(row) {
-		//console.log(" -- ENTIES="+dumpObj(row,'', ' ', 2));
-				
-		// If file exists
-		if (row.type == 1) {
-			if (successCallback) {
-				var type = "text/text"; // TODO: based upon file ext
-				var file = new File(getFilename(fullPath), fullPath, type, row.modified, row.size);
-				successCallback(file);
-			}
-		}
-
-		// Was a dir, not a file, so error
-		else {
-			if (errorCallback) {
-				var err = new FileError();
-				err.code = FileError.TYPE_MISMATCH_ERR;
-				errorCallback(err);
-			}	
-		}
-	},
-	function() {
-		//console.log(" -- No file found");
-		if (errorCallback) {
-			var err = new FileError();
-			err.code = FileError.NOT_FOUND_ERR;
-			errorCallback(err);
-		}
-	});
-
+    PhoneGap.exec(successCallback, errorCallback, "File", "getFileMetadata", [this.fullPath]);
 };
 
 /** @constructor */
-LocalFileSystem = function() {
+var LocalFileSystem = function() {
 };
 
 // File error codes
@@ -1786,37 +949,8 @@ LocalFileSystem.prototype.requestFileSystem = function(type, size, successCallba
             });
         }
     }
-    // If too big
-    else if (size > 10000000000) {
-    	var err = new FileError();
-    	err.code = FileError.QUOTA_EXCEEDED_ERR;
-    	errorCallback(err);
-    }
     else {
-    	
-        //PhoneGap.exec(successCallback, errorCallback, "File", "requestFileSystem", [type, size]);
-        var name = "temporary";
-        var root = new DirectoryEntry();
-        root.isFile = false;
-        root.isDirectory = true;
-        root.name = "tmp";
-        root.fullPath = "tmp";
-        if (type === 1) {
-        	name = "persistent";
-            root.name = "data";
-            root.fullPath = "data";
-        }
-        else if (type === 2) {
-        	name = "resource";
-            root.name = "resource";
-            root.fullPath = "resource";
-        }
-        else if (type === 3) {
-        	name = "application";
-            root.name = "app";
-            root.fullPath = "app";
-        }
-        successCallback({name:name, root:root});
+        PhoneGap.exec(successCallback, errorCallback, "File", "requestFileSystem", [type, size]);
     }
 };
 
@@ -1827,40 +961,7 @@ LocalFileSystem.prototype.requestFileSystem = function(type, size, successCallba
  * @param {Function} errorCallback is called with a FileError
  */
 LocalFileSystem.prototype.resolveLocalFileSystemURI = function(uri, successCallback, errorCallback) {
-	//console.log("resolveLocalFileSystemURI("+uri+")");
-	
-	// Get from filesystem
-	filesim.getFileOrDir(uri, function(entry) {
-		//console.log("resolveLocalFileSystemURI SUCCESS:"+dumpObj(entry,'', ' ',1));
-		
-		// If dir
-		if (entry.type === filesim.DIR) {
-			var entry = new DirectoryEntry();
-			entry.isFile = false;
-			entry.isDirectory = true;
-			entry.name = getFilename(uri);
-			entry.fullPath = uri;
-			if (successCallback) successCallback(entry);
-		}
-		
-		// If file
-		else {
-			var entry = new FileEntry();
-			entry.isFile = true;
-			entry.isDirectory = false;
-			entry.name = getFilename(uri);
-			entry.fullPath = uri;
-			if (successCallback) successCallback(entry);			
-		}
-	},
-	function() {
-		//console.log("resolveLocalFileSystemURI ERROR");
-		var err = new FileError();
-    	err.code = FileError.NOT_FOUND_ERR;
-    	if (errorCallback) {
-    		errorCallback(err);
-    	}
-	});
+    PhoneGap.exec(successCallback, errorCallback, "File", "resolveLocalFileSystemURI", [uri]);
 };
 
 /**
@@ -1947,12 +1048,14 @@ LocalFileSystem.prototype._castDate = function(pluginResult) {
 /**
  * Add the FileSystem interface into the browser.
  */
+console.log("===========++++++++++++ ADDING CONSTRUCTOR FILE.JS ++++++++++++");
 PhoneGap.addConstructor(function() {
+	console.log("========================= FILE.JS ===============");
 	var pgLocalFileSystem = new LocalFileSystem();
 	// Needed for cast methods
-    if(typeof window.localFileSystem == "undefined") window.localFileSystem  = pgLocalFileSystem;
+	console.log("***** typeof window.localFileSystem="+typeof window.localFileSystem);
+    if(typeof window.localFileSystem == "undefined") { window.localFileSystem  = pgLocalFileSystem; console.log("***** SETTING LFS.")}
     if(typeof window.requestFileSystem == "undefined") window.requestFileSystem  = pgLocalFileSystem.requestFileSystem;
     if(typeof window.resolveLocalFileSystemURI == "undefined") window.resolveLocalFileSystemURI = pgLocalFileSystem.resolveLocalFileSystemURI;
 });
-}());
 }

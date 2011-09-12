@@ -1,5 +1,5 @@
 addService("Camera", function() {    
-	var cameraDir = "phonegap/camera/";
+	var cameraDir = "";
 	var curCameraImage = "";
 	var curAlbumImage = "";
 
@@ -23,16 +23,16 @@ addService("Camera", function() {
 	var getCameraImage = function(source) {
 		console.log("camera image="+curCameraImage);
 		if (source == 1) {
-			return baseUrl+"/"+cameraDir+curCameraImage;
+			return cameraDir + curCameraImage;
 		}
 		else {
-			return baseUrl+"/"+cameraDir+curAlbumImage;
+			return cameraDir + curAlbumImage;
 		}
 	}
 
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, args) {
+	this.exec = function(action, args, callbackId) {
 		// [quality, destinationType, sourceType, targetWidth, targetHeight, encodingType]
 		if (action=='takePicture') {
 			var r = getCameraImage(args[2]);
@@ -43,6 +43,9 @@ addService("Camera", function() {
 
 	// Initialization 
 	{
+		// Determine base URL for this JS file
+		cameraDir = getScriptBase("camera.js") + "camera/";
+
 		this.setCameraImage("camera1_m.jpg");
 		this.setAlbumImage("album1_m.jpg");
 	}

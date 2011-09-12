@@ -9,6 +9,7 @@ addService("Network Status", function() {
 	this.TYPE_NONE = "none";
 
 	var currentState = "offline";
+	var callback = "";
 	
 	// Get network selected in UI
 	var getNetwork = function() {
@@ -30,19 +31,14 @@ addService("Network Status", function() {
 	// Public
 	// Called by UI to send change in network status to device
 	this.onChange = function(value) {
-		if (value == "none") {
-			currentState = "offline";
-		}
-		else {
-			currentState = "online";
-		}
-		fireEvent(currentState);
+		sendResult(new PluginResult(callback, PluginResultStatus.OK, value, true));
 	};
 	
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, jsonArgs) {
+	this.exec = function(action, args, callbackId) {
 		if (action=='getConnectionInfo') {
+			callback = callbackId;
 			var r = getNetwork();
 			return new PluginResult(callbackId, PluginResultStatus.OK, r, true); // keep callback
 		}

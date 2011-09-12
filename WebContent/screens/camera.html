@@ -1,11 +1,10 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <!-- meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=2.0, maximum-scale=4.0, minimum-scale=1.0" / -->
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
     <title>PhoneGap</title>
-    <script type="text/javascript" charset="utf-8" src="../phonegap/phonegap.0.9.5.js"></script>      
+    <script type="text/javascript" charset="utf-8" src="../phonegap.js"></script>      
     <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
     <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
     <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
@@ -61,49 +60,12 @@
             },
             { quality: 50, destinationType: navigator.camera.DestinationType.FILE_URI, sourceType: navigator.camera.PictureSourceType.PHOTOLIBRARY});
     };
-
-    /**
-     * Get picture and upload as base64 image
-     */
-    function getPictureUpload() {
-        return;
-        //@TODO:
-        navigator.camera.getPicture(
-            function(data) {
-                var img = document.getElementById('camera_image');
-                img.style.visibility = "visible";
-                img.style.display = "block";
-                img.src = "data:image/jpeg;base64," + data;
-                //img.src = data;
-                document.getElementById('camera_status').innerHTML = "Success";
-
-                try {
-                    var ajaxReq = new XMLHttpRequest();
-                    ajaxReq.open("POST", "http://192.168.0.199/mobile/apps/demo/demo.php", true);
-                    ajaxReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-                    ajaxReq.onreadystatechange = function(){
-                        if(ajaxReq.readyState == 4){
-                            console.log("POST XHR status="+ajaxReq.status+": "+ajaxReq.responseText);
-                        }
-                    };
-                    ajaxReq.send("picture="+data);
-                }
-                catch (ex) {
-                    console.log("Error: " + ex);
-                }
-            },
-            function(e) {
-                console.log("Error getting picture: " + e);
-                document.getElementById('camera_status').innerHTML = "Error getting picture.";
-            },
-            { quality: 50, destinationType: navigator.camera.DestinationType.DATA_URL, sourceType: navigator.camera.PictureSourceType.PHOTOLIBRARY});
-    };
     
     /**
      * Function called when page has finished loading.
      */
     function init() {
-        console.log("accelerometer.init()");
+        console.log("camera.init()");
         document.addEventListener("deviceready", function() {deviceReady = true;}, false);
         window.setTimeout(function() {
             if (!deviceReady) {
@@ -122,14 +84,13 @@
             <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
                 <div id="camera_status"></div>
                 <div dojoType="dojox.mobile.RoundRect">
-                    <img style="height:120px;" s2="visibility:hidden;display:none;" id="camera_image" src="../ibm-logo.jpg" />
+                    <img style="height:120px;" style="visibility:hidden;display:none;" id="camera_image" src="" />
                 </div>
         </ul>
         <h2 class="mblHeading">Action</h2>
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
             <li dojoType="dojox.mobile.ListItem" onclick="getPicture();">Take Picture</li>
             <li dojoType="dojox.mobile.ListItem" onclick="getImage();">Select Image from Library</li>
-            <li dojoType="dojox.mobile.ListItem" onclick="getPictureUpload();">Take Picture and Upload</li>
         </ul>
     </div>
   </body>

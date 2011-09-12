@@ -5,7 +5,7 @@
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
     <title>PhoneGap</title>
-    <script type="text/javascript" charset="utf-8" src="../phonegap/phonegap.0.9.5.js"></script>      
+    <script type="text/javascript" charset="utf-8" src="../phonegap.js"></script>      
     <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
     <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
     <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
@@ -17,6 +17,7 @@
     dojo.require("dojox.mobile");
 
     var deviceReady = false;
+    var registered = "Not listening.";
     
     //-------------------------------------------------------------------------
     // Network
@@ -25,34 +26,26 @@
     /**
      * Check network status
      */
-     var isReachable = function() {
-        document.getElementById('reachable_status').innerHTML = "Retrieving...";
-        navigator.network.isReachable("phonegap.com",
+     var checkConnection = function() {
+         var networkState = navigator.network.connection.type;
 
-            // Success callback
-            function(reachability) {
-                // There is no consistency on the format of reachability
-                var networkState = reachability.internetConnectionStatus || reachability.code || reachability;
+         var states = {};
+         states[Connection.UNKNOWN]  = 'Unknown connection';
+         states[Connection.ETHERNET] = 'Ethernet connection';
+         states[Connection.WIFI]     = 'WiFi connection';
+         states[Connection.CELL_2G]  = 'Cell 2G connection';
+         states[Connection.CELL_3G]  = 'Cell 3G connection';
+         states[Connection.CELL_4G]  = 'Cell 4G connection';
+         states[Connection.NONE]     = 'No network connection';
 
-                var states = {};
-                states[NetworkStatus.NOT_REACHABLE]                      = 'No network connection';
-                states[NetworkStatus.REACHABLE_VIA_CARRIER_DATA_NETWORK] = 'Carrier data connection';
-                states[NetworkStatus.REACHABLE_VIA_WIFI_NETWORK]         = 'WiFi connection';
-
-                document.getElementById('reachable_status').innerHTML = states[networkState];
-            },
-
-            // Fail callback
-            function(e) {
-                document.getElementById('reachable_status').innerHTML = "Error: " + e;
-            });
-    };
+         document.getElementById('reachable_status').innerHTML = registered + "<br>" + states[networkState];
+     };
     
     /**
      * Function called when page has finished loading.
      */
     function init() {
-        console.log("accelerometer.init()");
+        console.log("network.init()");
         document.addEventListener("deviceready", function() {deviceReady = true;}, false);
         window.setTimeout(function() {
             if (!deviceReady) {
@@ -61,7 +54,21 @@
         },1000);
     }
 
-</script>
+    function regConnection() {
+        document.addEventListener("online", checkConnection, false);
+        document.addEventListener("offline", checkConnection, false);
+        registered = "Listening...";
+        checkConnection();
+    }
+
+    function unregConnection() {
+        document.removeEventListener("online", checkConnection, false);
+        document.removeEventListener("offline", checkConnection, false);
+        registered = "Not listening.";
+        checkConnection();
+    }
+
+    </script>
 
   </head>
   <body onload="init();">  
@@ -75,7 +82,9 @@
         </ul>
         <h2 class="mblHeading">Action</h2>
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
-            <li dojoType="dojox.mobile.ListItem" onclick="isReachable();">Call isReachable</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="checkConnection();">Check Connection</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="regConnection();">Listen for Connection Events</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="unregConnection();">Stop listening for Connection Events</li>
         </ul>
     </div>
   </body>

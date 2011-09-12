@@ -1,46 +1,26 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <!-- meta name="viewport" content="width=device-width, height=device-height, user-scalable=yes, initial-scale=2.0, maximum-scale=4.0, minimum-scale=1.0" / -->
+    <!-- This is the mobile app to run in simulator -->
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
-    <title>PhoneGap</title>
-    <!-- script type="text/javascript" charset="utf-8" src="phonegap.0.9.5.min.js"></script -->      
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>PhoneGap</title>      
     <link rel="stylesheet" type="text/css" category="android" href="./dojo/dojox/mobile/themes/android/android.css"/>
     <link rel="stylesheet" href="./dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
     <link rel="stylesheet" href="./dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
-    <!-- script src="http://192.168.0.199:8080/target/target-script.js"></script -->
-    <script type="text/javascript" src="./dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
-    <!-- script type="text/javascript" src="./dojo/com/ibm/swgtc/Accelerometer.js"></script -->
-      
-<script type="text/javascript" charset="utf-8">
+    <script type="text/javascript" src="./dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>    
+    <script type="text/javascript" charset="utf-8">
     dojo.require("dojox.mobile.parser");
     dojo.require("dojox.mobile");
 
-    //dojo.require("com.ibm.swgtc.Accelerometer");
-
-    var deviceReady = false;
-
-    /**
-     * Function called when page has finished loading.
-     */
-    function init() {
-        console.log("init()");
-        //document.addEventListener("deviceready", deviceInfo, false);
-        document.addEventListener("deviceready", function() {deviceReady = true;}, false);
-    }
-    
     function loadPage(page) {
-    	//dojo.byId("newPage").src = page;
     	document.location = page;
     }
-
-</script>
-
+    </script>
   </head>
-  <body onload="init();">
+  <body>
     <div id="main" dojoType="dojox.mobile.View" selected="true">
-    <h1 dojoType="dojox.mobile.Heading" style="font-size:18px;height:32px;line-height:30px;">Dojo PhoneGap Demo</h1>
+    <h1 dojoType="dojox.mobile.Heading" style="font-size:18px;height:32px;line-height:30px;">PhoneGap Demo App</h1>
     <ul id="menu" dojoType="dojox.mobile.EdgeToEdgeList">
         <li moveto1="frame" dojoType="dojox.mobile.ListItem" onclick="loadPage('screens/accelerometer.html');">
             <div class="mblListItemTextBox">Accelerometer</div><div class="mblArrow"></div>
@@ -75,14 +55,7 @@
         <li dojoType="dojox.mobile.ListItem" onclick="loadPage('test/index.html');">
             <div class="mblListItemTextBox">Tests</div><div class="mblArrow"></div>
         </li>
-        <!-- li dojoType="dojox.mobile.ListItem">
-            <div dojoType="com.ibm.swgtc.Accelerometer" label="My Button"></div>
-        </li -->
     </ul>
     </div>
-    <!--  div id="frame" dojoType="dojox.mobile.View">
-        <h1 dojoType="dojox.mobile.Heading" back="Home" moveTo="main">Settings</h1>
-        <iframe id="newPage" src="" width="100%" height="800px"></iframe>
-    </div -->
   </body>
 </html>

@@ -2,7 +2,7 @@ addService("Capture", function() {
 
 	// Public
 	// Handle requests 
-	this.exec = function(action, callbackId, args) {
+	this.exec = function(action, args, callbackId) {
 		console.log("Capture."+action+"()");
 		alert("Capture API not implemented yet");
 		return new PluginResult(callbackId, PluginResultStatus.OK, "NOT IMPLEMENTED", false);
