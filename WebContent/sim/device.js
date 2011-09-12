@@ -9,7 +9,7 @@ addService("Device", function () {
 		r.version = dojo.byId("version").value;
 		r.name = "simjs";
 		r.uuid = dojo.byId("uuid").value;
-		r.phonegap = "0.9.5";
+		r.phonegap = "1.0.0";
 		r.available = true;
 		return r;
 	};
