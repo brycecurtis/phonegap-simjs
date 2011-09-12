@@ -20,6 +20,7 @@ The simulator consists of web content located under the "WebContent" directory.
 * phonegap.js - include this in your PhoneGap app HTML file
 * sim/* - simulator files includes HTML content for controls and simulates native phonegap implementation
 * phonegap/* - phonegap JavaScript API implementation
+* upload.php - PHP script to copy to your web server to support File Transfer features
   
 The remaining files make up your PhoneGap application.  An example app is included.
 

@@ -98,7 +98,13 @@
         <div dojoType="dijit.TitlePane" title="File" open="false"
             href="sim/file.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/file.js')"></div>            
         <!-- end File -->
-
+        
+        <!-- File Transfer -->
+        <script>
+        loadJavascript('sim/filetransfer.js');
+        </script>
+        <!-- end File Transfer -->
+        
         <!-- Geolocation -->
         <div dojoType="dijit.TitlePane" title="Geolocation" open="false"
             href="sim/geolocation.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/geolocation.js')"></div>
@@ -149,6 +155,9 @@
 
 <!--  Applets used by features -->
 <applet id="pgFileApplet" name="pgFileApplet" code="com.phonegap.applet.FileApplet" archive="sim/phonegapApplet.jar" MAYSCRIPT width="1" height="1">
+    <p>Java-enabled browser needed for this feature.</p>
+</applet>
+<applet id="pgFileTransferApplet" name="pgFileTranasferApplet" code="com.phonegap.applet.FileTransferApplet" archive="sim/phonegapApplet.jar" MAYSCRIPT width="1" height="1">
     <p>Java-enabled browser needed for this feature.</p>
 </applet>
 

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>PhoneGap</title>
     <script type="text/javascript" charset="utf-8" src="../phonegap.js"></script>      
     <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
@@ -16,6 +16,8 @@
     dojo.require("dojox.mobile");
 
     var deviceReady = false;
+    
+    var server = "http://localhost/mobile/upload.php";
 
     //-------------------------------------------------------------------------
     // Camera
@@ -62,6 +64,49 @@
     };
     
     /**
+     * Upload current image
+     */
+    function uploadImage() {
+    	var img = document.getElementById('camera_image');
+    	var imageURI = img.src;
+    	console.log("src="+imageURI);
+    	if (!imageURI) {
+    		document.getElementById('camera_status').innerHTML = "Take picture or select image from library first.";
+    		return;
+    	}
+    	
+    	server = prompt("Specify server URL to upload image to:", server);
+    	if (server) {
+    	
+        var options = new FileUploadOptions();
+        options.fileKey="file";
+        options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
+        options.mimeType="image/jpeg";
+
+        var params = new Object();
+        params.value1 = "test";
+        params.value2 = "param";
+
+        options.params = params;
+
+        var ft = new FileTransfer();
+        ft.upload(imageURI, server, win, fail, options);
+    	}
+    }
+
+    function win(r) {
+        console.log("Code = " + r.responseCode);
+        console.log("Response = " + r.response);
+        console.log("Sent = " + r.bytesSent);
+        document.getElementById('camera_status').innerHTML = "Upload successful: "+r.bytesSent+" bytes uploaded.";
+    }
+
+    function fail(error) {
+        console.log("An error has occurred: Code = " = error.code);
+        document.getElementById('camera_status').innerHTML = "Upload failed: Code = "+error.code;
+    }
+    
+    /**
      * Function called when page has finished loading.
      */
     function init() {
@@ -84,13 +129,14 @@
             <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
                 <div id="camera_status"></div>
                 <div dojoType="dojox.mobile.RoundRect">
-                    <img style="height:120px;" style="visibility:hidden;display:none;" id="camera_image" src="" />
+                    <img style="height:120px;" style="visibility:hidden;display:none;" id="camera_image" />
                 </div>
         </ul>
         <h2 class="mblHeading">Action</h2>
         <ul dojoType="dojox.mobile.EdgeToEdgeList">
             <li dojoType="dojox.mobile.ListItem" onclick="getPicture();">Take Picture</li>
             <li dojoType="dojox.mobile.ListItem" onclick="getImage();">Select Image from Library</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="uploadImage();">Upload Current Library Image</li>
         </ul>
     </div>
   </body>
