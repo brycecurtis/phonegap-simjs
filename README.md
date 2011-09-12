@@ -9,28 +9,31 @@ The simulator is not a substitute for using the mobile SDK, but it does allow fo
 
 ## Software requirements ##
 
-It has only been tested on Mac Safari, with the goal to run on Chrome and Firefox as well.
-Java applets must be enabled in browser.
+* It has only been tested on Mac Safari, with the goal to run on Chrome and Firefox as well.
+* Java applets must be enabled in browser.
 
 ## Using simulator ##
 
 The simulator consists of web content located under the "WebContent" directory.
-  sim.html - simulator file to be loaded into your browser (file:///<path>/WebContent/sim.html)
-  phonegap.js - include this in your PhoneGap app HTML file
-  sim/* - simulator files includes HTML content for controls and simulates native phonegap implementation
-  phonegap/* - phonegap JavaScript API implementation
+
+* sim.html - simulator file to be loaded into your browser (file:///<path>/WebContent/sim.html)
+* phonegap.js - include this in your PhoneGap app HTML file
+* sim/* - simulator files includes HTML content for controls and simulates native phonegap implementation
+* phonegap/* - phonegap JavaScript API implementation
   
 The remaining files make up your PhoneGap application.  An example app is included.
-  index.html - your PhoneGap application.  The provided demo includes a list of PhoneGap test apps.
-  dojo/* - mobile Dojo used by test apps.
-  screens/* - PhoneGap test apps.
+
+* index.html - your PhoneGap application.  The provided demo includes a list of PhoneGap test apps.
+* dojo/* - mobile Dojo used by test apps.
+* screens/* - PhoneGap test apps.
 
 Some simulator functions cannot be simulated using only JavaScript, so Java applets are used to provide functionality.  The applet code is located under the "src" dirctory.  The applet code is patterned after the Android code, so to enable the Android Java code to be used with minor modifications in an applet environment, a few android classes were stubbed out.  A JSON library is also included, along with commons-codec.jar used for Android.
-  android/* - Android stubbed classes.
-  org.apache.commons/* - commons-codec.jar source
-  org.apache.wink/* - JSON library source
-  com.phonegap.applet/* - Applet source
-  com.phonegap.* - Modified PhoneGap code as needed from Android implementation
+
+* android/* - Android stubbed classes.
+* org.apache.commons/* - commons-codec.jar source
+* org.apache.wink/* - JSON library source
+* com.phonegap.applet/* - Applet source
+* com.phonegap.* - Modified PhoneGap code as needed from Android implementation
 
 The applet is compiled using the "build.sh" script and copied into the "WebContent/sim" directory.  You don't need to run this script unless you change the applet source code.
 
