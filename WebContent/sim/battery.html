@@ -1,0 +1,22 @@
+<form id="batteryForm">
+    <label>Plugged in:</label>
+    <input type="checkbox" name="pluggedIn" id="pluggedIn" value="pluggedIn" onChange="getService('Battery').onChange(this.checked);" /> <br />
+    <label>Battery Level:</label>
+    <span id="batteryLevel"></span>
+    <br /><br />    
+    <div id="horizontalSlider" dojoType="dijit.form.HorizontalSlider" value="95"
+        minimum="0" maximum="100" discreteValues="21" intermediateChanges="true"
+        showButtons="false" style="width:300px;" onChange="getService('Battery').onChange(this.value);">
+        <div dojoType="dijit.form.HorizontalRule" container="bottomDecoration" count=11 style="height:5px;"></div>
+        <ol dojoType="dijit.form.HorizontalRuleLabels" container="bottomDecoration"
+            style="height:1.5em;font-size:75%;color:gray;">
+            <li>0%</li>
+            <li>20%</li>
+            <li>40%</li>
+            <li>60%</li>
+            <li>80%</li>
+            <li>100%</li>
+        </ol>
+    </div>
+</form>
+

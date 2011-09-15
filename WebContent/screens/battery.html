@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
+    <title>PhoneGap</title>
+    <script type="text/javascript" charset="utf-8" src="../phonegap.js"></script>      
+    <link rel="stylesheet" type="text/css" category="android" href="../dojo/dojox/mobile/themes/android/android.css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/buttons.css" type="text/css"/>
+    <link rel="stylesheet" href="../dojo/dojox/mobile/themes/domButtons.css" type="text/css"/>
+    <!-- script src="http://192.168.0.199:8080/target/target-script.js"></script -->
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="parseOnLoad: true"></script>
+      
+<script type="text/javascript" charset="utf-8">
+    dojo.require("dojox.mobile.parser");
+    dojo.require("dojox.mobile");
+
+    var deviceReady = false;
+    var registered = "Not listening.";
+    
+    //-------------------------------------------------------------------------
+    // Battery
+    //-------------------------------------------------------------------------
+    
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+        console.log("battery.init()");
+        document.addEventListener("deviceready", function() {
+        	deviceReady = true;
+        	regConnection();
+       	}, false);
+        window.setTimeout(function() {
+            if (!deviceReady) {
+                alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+            }
+        },1000);
+    }
+
+    function regConnection() {
+    	window.addEventListener("batterystatus", statusHandler, false);
+    	window.addEventListener("batterylow", statusHandlerLow, false);
+    	window.addEventListener("batterycritical", statusHandlerCritical, false);
+        registered = "Listening...";
+        document.getElementById('battery_registered').innerHTML = registered;
+    }
+
+    function unregConnection() {
+    	window.removeEventListener("batterystatus", statusHandler, false);
+    	window.removeEventListener("batterylow", statusHandlerLow, false);
+    	window.removeEventListener("batterycritical", statusHandlerCritical, false);
+        registered = "Not listening.";
+        document.getElementById('battery_registered').innerHTML = registered;
+    }
+    
+    function statusHandler(info) {
+        document.getElementById('battery_status').innerHTML = "Plugged in: " + info.isPlugged + "<br>Level: "+ info.level;    	
+    }
+    
+    function statusHandlerLow(info) {
+        document.getElementById('battery_status').innerHTML = "Plugged in: " + info.isPlugged + "<br>Level: "+ info.level + "<br>Low Level";    	
+    }
+
+    function statusHandlerCritical(info) {
+        document.getElementById('battery_status').innerHTML = "Plugged in: " + info.isPlugged + "<br>Level: "+ info.level + "<br>Critical Level";       
+    }
+
+    </script>
+
+  </head>
+  <body onload="init();">  
+    <div id="main" dojoType="dojox.mobile.View" selected="true">
+        <h1 dojoType="dojox.mobile.Heading" style="font-size:18px;height:32px;line-height:30px;">Network</h1>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" class="mblVariableHeight">
+                <div dojoType="dojox.mobile.RoundRect"> 
+                    <div id="battery_registered"></div>
+                    <div id="battery_status">Select action below.</div>
+                </div>
+        </ul>
+        <h2 class="mblHeading">Action</h2>
+        <ul dojoType="dojox.mobile.EdgeToEdgeList">
+            <li dojoType="dojox.mobile.ListItem" onclick="regConnection();">Listen for Battery Events</li>
+            <li dojoType="dojox.mobile.ListItem" onclick="unregConnection();">Stop listening for Battery Events</li>
+        </ul>
+    </div>
+  </body>
+</html>      

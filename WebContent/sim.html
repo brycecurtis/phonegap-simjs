@@ -14,6 +14,7 @@
             dojo.require("dijit.Tree" );
             dojo.require("dijit.TitlePane");
             dojo.require("dojox.layout.ContentPane");
+            dojo.require("dijit.form.Slider");
 
 </script>
 <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dijit/themes/claro/claro.css" />
@@ -73,6 +74,11 @@
         <div dojoType="dijit.TitlePane" title="Accelerometer" open="false" 
             href="sim/accelerometer.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/accelerometer.js')"></div>
         <!-- end Accelerometer -->
+        
+        <!-- Battery -->
+        <div dojoType="dijit.TitlePane" title="Battery" open="false"
+            href="sim/battery.html" parseOnLoad="true" preload="true" onLoad="loadJavascript('sim/battery.js')"></div>
+        <!-- end Battery -->
         
         <!-- Camera -->
         <div dojoType="dijit.TitlePane" title="Camera" open="false"
