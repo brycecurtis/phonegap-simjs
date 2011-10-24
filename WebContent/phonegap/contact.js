@@ -3,7 +3,7 @@
  * MIT License (2008). See http://opensource.org/licenses/alphabetical for full text.
  *
  * Copyright (c) 2005-2010, Nitobi Software Inc.
- * Copyright (c) 2010-2011, IBM Corporation
+ * Copyright (c) 2010, IBM Corporation
  */
 
 if (!PhoneGap.hasResource("contact")) {
@@ -21,14 +21,17 @@ PhoneGap.addResource("contact");
 * @param {Array.<ContactAddress>} addresses array of addresses
 * @param {Array.<ContactField>} ims instant messaging user ids
 * @param {Array.<ContactOrganization>} organizations
+* @param {DOMString} revision date contact was last updated
 * @param {DOMString} birthday contact's birthday
+* @param {DOMString} gender contact's gender
 * @param {DOMString} note user notes about contact
 * @param {Array.<ContactField>} photos
 * @param {Array.<ContactField>} categories
 * @param {Array.<ContactField>} urls contact's web sites
+* @param {DOMString} timezone the contacts time zone
 */
 Contact = function (id, displayName, name, nickname, phoneNumbers, emails, addresses,
-    ims, organizations, birthday, note, photos, categories, urls) {
+    ims, organizations, revision, birthday, gender, note, photos, categories, urls, timezone) {
     this.id = id || null;
     this.rawId = null;
     this.displayName = displayName || null;
@@ -39,11 +42,14 @@ Contact = function (id, displayName, name, nickname, phoneNumbers, emails, addre
     this.addresses = addresses || null; // ContactAddress[]
     this.ims = ims || null; // ContactField[]
     this.organizations = organizations || null; // ContactOrganization[]
+    this.revision = revision || null;
     this.birthday = birthday || null;
+    this.gender = gender || null;
     this.note = note || null;
     this.photos = photos || null; // ContactField[]
     this.categories = categories || null; // ContactField[]
     this.urls = urls || null; // ContactField[]
+    this.timezone = timezone || null;
 };
 
 /**
@@ -60,10 +66,11 @@ ContactError = function() {
  */
 ContactError.UNKNOWN_ERROR = 0;
 ContactError.INVALID_ARGUMENT_ERROR = 1;
-ContactError.TIMEOUT_ERROR = 2;
-ContactError.PENDING_OPERATION_ERROR = 3;
-ContactError.IO_ERROR = 4;
-ContactError.NOT_SUPPORTED_ERROR = 5;
+ContactError.NOT_FOUND_ERROR = 2;
+ContactError.TIMEOUT_ERROR = 3;
+ContactError.PENDING_OPERATION_ERROR = 4;
+ContactError.IO_ERROR = 5;
+ContactError.NOT_SUPPORTED_ERROR = 6;
 ContactError.PERMISSION_DENIED_ERROR = 20;
 
 /**
@@ -74,12 +81,11 @@ ContactError.PERMISSION_DENIED_ERROR = 20;
 Contact.prototype.remove = function(successCB, errorCB) {
     if (this.id === null) {
         var errorObj = new ContactError();
-        errorObj.code = ContactError.UNKNOWN_ERROR;
+        errorObj.code = ContactError.NOT_FOUND_ERROR;
         errorCB(errorObj);
     }
     else {
         var me = this;
-        //PhoneGap.exec(successCB, errorCB, "Contacts", "remove", [this.id]);
         var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
         db.transaction(function(tx) {
             console.log("We are in remove contact");
@@ -155,10 +161,15 @@ Contact.prototype.clone = function() {
 Contact.prototype.save = function(successCB, errorCB) {
     var helper = new ContactSQLHelper();
     var saveContact = function(tx) {
-        if (me.id == null) {
+        console.log("in contact.save()");
+        if (me.id == null || me.id == "") {
+            console.log("I don't have an id");
             tx.executeSql(helper.insertContact(me));
+            console.log("inserted new contact");
             var newId = null;
+            console.log("Get all contacts");
             tx.executeSql("SELECT id FROM CONTACTS", [], function(tx, results) {
+                    console.log("get all contacts success");
                     var len = results.rows.length, i;
                     for (i = 0; i < len; i++) {
                         newId = results.rows.item(i).id;
@@ -242,6 +253,8 @@ Contact.prototype.save = function(successCB, errorCB) {
             // Emails
             if (me.emails != null) {
                 for (var i=0; i < me.emails.length; i++) {
+                	console.log("IN update emails");
+                	console.log("Emails[" + i + "] id is = " + me.emails[i].id);
                     if (me.emails[i].id == null) {
                         tx.executeSql(helper.insertField(newId, me.emails[i], "email"));                    
                     } else {
@@ -315,7 +328,6 @@ Contact.prototype.save = function(successCB, errorCB) {
     var me = this;
     var db = window.openDatabase("Contacts", "1.0", "PhoneGap SimJS", 500000);
     db.transaction(saveContact, errorCB, successCB);
-    //PhoneGap.exec(successCB, errorCB, "Contacts", "save", [this]);
 };
 
 /**
@@ -363,10 +375,8 @@ ContactField = function(type, value, pref) {
 * @param postalCode
 * @param country
 */
-ContactAddress = function(pref, type, formatted, streetAddress, locality, region, postalCode, country) {
+ContactAddress = function(formatted, streetAddress, locality, region, postalCode, country) {
 	this.id = null;
-    this.pref = pref || null;
-    this.type = type || null;
     this.formatted = formatted || null;
     this.streetAddress = streetAddress || null;
     this.locality = locality || null;
@@ -387,10 +397,8 @@ ContactAddress = function(pref, type, formatted, streetAddress, locality, region
 * @param location
 * @param desc
 */
-ContactOrganization = function(pref, type, name, dept, title) {
+ContactOrganization = function(name, dept, title) {
 	this.id = null;
-    this.pref = pref || null;
-    this.type = type || null;
     this.name = name || null;
     this.department = dept || null;
     this.title = title || null;
@@ -652,10 +660,12 @@ Contacts.prototype.cast = function(pluginResult) {
  * @constructor
  * @param filter used to match contacts against
  * @param multiple boolean used to determine if more than one contact should be returned
+ * @param updatedSince return only contact records that have been updated on or after the given time
  */
-ContactFindOptions = function(filter, multiple) {
+ContactFindOptions = function(filter, multiple, updatedSince) {
     this.filter = filter || '';
-    this.multiple = multiple || false;
+    this.multiple = multiple || true;
+    this.updatedSince = updatedSince || '';
 };
 
 var ContactSQLHelper = function() {
@@ -758,7 +768,7 @@ ContactSQLHelper.prototype.updateName = function(contact, mimetype) {
 ContactSQLHelper.prototype.updateField = function(field, mimetype) {
   return ('UPDATE FIELDS SET type = "' + field.type + '", value = "' + field.value + '",' +
             ' pref = "' + field.pref + '", mimetype = "' + mimetype + '" ' +
-            ' where id = ' + field.id);  
+            ' where id = ' + field.id + ' and mimetype = "' + mimetype + '"');  
 };
 
 ContactSQLHelper.prototype.updateAddress = function(address) {

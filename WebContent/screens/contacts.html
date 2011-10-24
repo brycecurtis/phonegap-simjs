@@ -62,19 +62,6 @@
 
     function addContact(){
         console.log("addContact for Android:");
-        /*
-        var contact = navigator.contacts.create();
-        contact.displayName = "Plumber";
-        var name = new ContactName();
-        name.givenName = "Jane";
-        name.familyName = "Doe";
-        contact.name = name;
-
-        // save
-        contact.save(
-            function() { alert("Contact saved.");},
-            function(e) { alert("Contact save failed: " + e); });
-        */
         try{
             var contact = navigator.contacts.create({"displayName": "Bryce User"});
             //contact.id = 1;
