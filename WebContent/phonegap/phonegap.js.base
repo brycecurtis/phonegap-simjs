@@ -590,7 +590,7 @@ window.removeEventListener = function(evt, handler, capture) {
 PhoneGap.fireDocumentEvent = function(type, data) {
     console.log("PhoneGap.fireDocumentEvent("+type+")");
     var e = document.createEvent('Events');
-    e.initEvent(type);
+    e.initEvent(type, true, true);
     if (data) {
         for (var i in data) {
             e[i] = data[i];
@@ -608,7 +608,7 @@ PhoneGap.fireDocumentEvent = function(type, data) {
 PhoneGap.fireWindowEvent = function(type, data) {
     console.log("PhoneGap.fireWindowEvent("+type+")");
     var e = document.createEvent('Events');
-    e.initEvent(type);
+    e.initEvent(type, true, true);
     if (data) {
         for (var i in data) {
             e[i] = data[i];
